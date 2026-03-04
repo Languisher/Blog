@@ -2,7 +2,7 @@
 title: 主题配色指南
 published: 2025-04-11
 tags:
-  - 指南
+  - 博客指南
 toc: false
 lang: zh
 abbrlink: theme-color-schemes

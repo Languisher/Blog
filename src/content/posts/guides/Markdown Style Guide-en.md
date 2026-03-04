@@ -3,8 +3,8 @@ title: Markdown Style Guide
 published: 2025-03-08
 updated: 2025-03-23
 tags:
-  - Guide
-pin: 98
+  - Blog Guide
+# pin: 98
 toc: false
 lang: en
 abbrlink: markdown-style-guide

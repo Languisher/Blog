@@ -2,7 +2,7 @@
 title: Markdown Extended Features
 published: 2025-04-25
 tags:
-  - Guide
+  - Blog Guide
 toc: false
 lang: en
 abbrlink: markdown-extended-features

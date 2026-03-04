@@ -2,7 +2,7 @@
 title: Theme Color Schemes
 published: 2025-04-11
 tags:
-  - Guide
+  - Blog Guide
 toc: false
 lang: en
 abbrlink: theme-color-schemes

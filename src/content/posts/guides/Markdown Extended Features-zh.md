@@ -2,7 +2,7 @@
 title: Markdown 扩展功能
 published: 2025-04-25
 tags:
-  - 指南
+  - 博客指南
 toc: false
 lang: zh
 abbrlink: markdown-extended-features
