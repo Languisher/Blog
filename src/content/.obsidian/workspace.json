@@ -169,7 +169,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -183,14 +184,17 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "7f4843b7bef4a9e8",
+  "active": "54dcdb03858e0190",
   "lastOpenFiles": [
+    "posts/llm/Attachments/KVCacheMech.png",
+    "posts/os/OS 程序与进程.md",
     "posts/llm/Flash Attention.md",
-    "posts/llm/Attachments/TilingInFlashAttention.png",
-    "posts/llm/Attachments/FlashAttentionAlgo1.png",
-    "posts/llm/LLM 推理基础术语解释.md",
     "posts/llm/LLM 基础.md",
     "posts/llm/LLM 推理并行.md",
+    "posts/llm/LLM 推理基础术语解释.md",
+    "posts/os",
+    "posts/llm/Attachments/TilingInFlashAttention.png",
+    "posts/llm/Attachments/FlashAttentionAlgo1.png",
     "posts/cuda/CUDA GEMM 优化.md",
     "posts/cuda/CUDA Grid, Block, Thread 和寻址.md",
     "posts/llm/Attachments/Tiling.png",
