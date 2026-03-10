@@ -135,8 +135,8 @@ $$
 - 因此每个设备在整个流程中要传输 $(p-1)N/p$ 的数据
 
 在 All-Reduce 的情景下：
-- ReduceScatter 需要发送 $(p-1) \times N/p$ 数据
-- AllGather 拼接，也需要发送 $(p-1) \times N/p$ 数据
+- ReduceScatter 需要发送 $(p-1) \times N/p$ 数据（这是因为进行 Reduce 操作时，需要接收所有其他设备上的数）
+- AllGather 拼接，同理也需要发送 $(p-1) \times N/p$ 数据
 
 因此，一共是
 $$

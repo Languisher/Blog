@@ -36,7 +36,7 @@ $$
 
 ![](Attachments/SoftmaxIllu.png)
 
-## Overview
+## FlashAttention1 Overview
 
 ![](https://miro.medium.com/v2/resize:fit:700/1*L1EnFbS2jq6rFTA9_cXrbg.gif)
 
@@ -85,7 +85,7 @@ $$
 对应地，输出矩阵 $C$ 也被划分为若干子块：
 
 $$
-C_{ij} \in \mathbb{R}^{B_A \times B_B}, \qquad
+C_{ij} \in \mathbb{R}^{d_A \times d_B}, \qquad
 C_{ij} = A_i B_j^\top .
 $$
 
@@ -141,7 +141,7 @@ $$
 
 假设遍历到第 $j$ 个元素，
 - **更新所有元素的最大值**：得到 $m_{j-1}(x) = \max(x_{1},\dots,x_{j-1})$，因此 $m_{j}(x) := \max{(m_{j-1}(x), x_{j})}$，其满足 $m_{j}(x) \geq m_{j-1}(x)$
-- **更新归一化因子，即 softmax 运算中的分母部分**：得到 $d_{j-1}(x) = \sum_{t=1}^{j-1}e^{t-m_{j-1}(x)}$. 因此 $d_{j}(x) := d_{j-1} \times e^{m_{j-1}(x) - m_{j}(x)} + e^{x_{j }-m_{j}(x)}$
+- **放缩：更新归一化因子，即 softmax 运算中的分母部分**：得到 $d_{j-1}(x) = \sum_{t=1}^{j-1}e^{t-m_{j-1}(x)}$. 因此 $d_{j}(x) := d_{j-1} \times e^{m_{j-1}(x) - m_{j}(x)} + e^{x_{j }-m_{j}(x)}$
 
 中间推导过程：
 
@@ -189,7 +189,9 @@ $$
 \text{softmax}(x) = \frac{f(x)}{l(x)} \in \mathbb{R}^{2B}, \quad f(x) \in \mathbb{R}^{2B}, \quad l(x) \in \mathbb{R}
 $$
 
-首先更新 $x$ 的最大值：$m(x) = \max(m^{(1)}, m^{(2)})$.
+首先**更新 $x$ 的最大值**：$m(x) = \max(m^{(1)}, m^{(2)})$.
+
+接下来是分别对 Softmax 的分母和分子部分**进行放缩**（借助于我们所存储的指数计算求和结果的 $l$ 值）：
 
 Softmax 的分母部分：
 $$
@@ -208,7 +210,7 @@ $$
 
 ### Online Softmax in FlashAttention
 
-现在我们放在 Attention 情况下。
+现在我们放在 Attention 情况下，思想也是完全相同：更新最大值，再对分子分母进行放缩。
 
 ![](Attachments/FlashAttentionAlgo1.png)
 
