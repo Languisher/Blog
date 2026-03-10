@@ -9,7 +9,7 @@ draft: true
 pin: 0
 toc: true
 lang: zh
-abbrlink: llm-basic
+abbrlink: os
 ---
 ## 虚拟化
 
