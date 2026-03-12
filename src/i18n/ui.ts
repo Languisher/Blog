@@ -7,6 +7,7 @@ interface Translation {
   posts: string
   tags: string
   about: string
+  other?: string
   toc: string
 }
 
@@ -27,6 +28,7 @@ export const ui: Record<Language, Translation> = {
     posts: 'Posts',
     tags: 'Tags',
     about: 'About',
+    other: 'Other',
     toc: 'Table of Contents',
   },
   'es': {
@@ -99,6 +101,7 @@ export const ui: Record<Language, Translation> = {
     posts: '文章',
     tags: '标签',
     about: '关于',
+    other: '其它',
     toc: '目录',
   },
   'zh-tw': {
@@ -108,6 +111,7 @@ export const ui: Record<Language, Translation> = {
     posts: '文章',
     tags: '標籤',
     about: '關於',
+    other: '其它',
     toc: '目錄',
   },
 }

@@ -1,0 +1,25 @@
+---
+import { getCollection, render } from 'astro:content'
+import { allLocales } from '@/config'
+import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
+import Layout from '@/layouts/Layout.astro'
+
+export async function getStaticPaths() {
+  return allLocales.map(lang => ({
+    params: { lang: getLangRouteParam(lang) },
+  }))
+}
+
+const currentLang = getLangFromLocale(Astro.currentLocale)
+const allOtherEntries = await getCollection('other')
+const otherEntry = allOtherEntries.find(entry => entry.data.lang === currentLang)
+  ?? allOtherEntries.find(entry => entry.data.lang === '')
+const { Content } = otherEntry ? await render(otherEntry) : { Content: null }
+---
+
+<Layout>
+  <div class="uno-decorative-line" />
+  <div class="heti">
+    {Content && <Content />}
+  </div>
+</Layout>
