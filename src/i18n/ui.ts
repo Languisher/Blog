@@ -95,8 +95,8 @@ export const ui: Record<Language, Translation> = {
     toc: 'Оглавление',
   },
   'zh': {
-    title: '博客',
-    subtitle: '广告位招租',
+    title: 'Languisher',
+    subtitle: 'Blogs of everything',
     description: '没有想好要写什么',
     posts: '文章',
     tags: '标签',

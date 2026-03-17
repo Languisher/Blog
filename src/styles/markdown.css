@@ -258,6 +258,12 @@ html.dark .heti :where(u) {
 /* Bold */
 .heti :where(b, strong) {
   --at-apply: 'font-semibold';
+  background-image: linear-gradient(
+    transparent 58%,
+    oklch(var(--un-preset-theme-colors-highlight)) 58%
+  );
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 
 /* Italic */
