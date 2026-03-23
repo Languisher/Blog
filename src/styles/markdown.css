@@ -7,11 +7,13 @@
 /* Global Styles */
 .heti {
   --at-apply: 'break-words leading-normal hyphens-auto cjk:tracking-wide';
+  --post-heading-color: #007EDA;
 }
 
 /* Customized Post Title */
 .heti .post-title {
   --at-apply: 'mb-2 mt-0 text-8.5 font-bold lg:text-9';
+  color: var(--post-heading-color);
 }
 
 /* Headings */
@@ -19,10 +21,10 @@
   --at-apply: 'mb-4 mt-1.5em scroll-mt-20 font-semibold';
 }
 .heti :where(h1) {
-  --at-apply: 'text-7 c-primary';
+  --at-apply: 'text-7';
 }
 .heti :where(h2) {
-  --at-apply: 'text-6 c-primary';
+  --at-apply: 'text-6';
 }
 .heti :where(h3) {
   --at-apply: 'text-5';
@@ -38,6 +40,14 @@
 }
 .heti :where(h1, h2, h3) {
   --at-apply: 'text-balance leading-1.33em cjk:text-pretty cjk:tracking-wider';
+}
+.heti #post-content :where(h1, h2, h3, h4, h5, h6) {
+  color: var(--post-heading-color);
+}
+.heti #post-content :where(h1, h2, h3, h4, h5, h6)[data-heading-number]::before {
+  --at-apply: 'mr-0.35em inline-block font-semibold';
+  content: attr(data-heading-number) ".";
+  font-variant-numeric: tabular-nums;
 }
 .heti :where(h1 + h2, h2 + h3, h3 + h4, h4 + h5, h5 + h6) {
   --at-apply: 'mt-4';

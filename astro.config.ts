@@ -14,6 +14,7 @@ import { langMap } from './src/i18n/config'
 import { rehypeCodeCopyButton } from './src/plugins/rehype-code-copy-button.mjs'
 import { rehypeExternalLinks } from './src/plugins/rehype-external-links.mjs'
 import { rehypeHeadingAnchor } from './src/plugins/rehype-heading-anchor.mjs'
+import { rehypeHeadingNumbering } from './src/plugins/rehype-heading-numbering.mjs'
 import { rehypeImageProcessor } from './src/plugins/rehype-image-processor.mjs'
 import { remarkContainerDirectives } from './src/plugins/remark-container-directives.mjs'
 import { remarkLeafDirectives } from './src/plugins/remark-leaf-directives.mjs'
@@ -73,6 +74,7 @@ export default defineConfig({
       [rehypeMermaid, { strategy: 'pre-mermaid' }],
       rehypeSlug,
       rehypeHeadingAnchor,
+      rehypeHeadingNumbering,
       rehypeImageProcessor,
       rehypeExternalLinks,
       rehypeCodeCopyButton,

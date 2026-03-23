@@ -3,6 +3,7 @@ import type { MarkdownHeading } from 'astro'
 import TocIcon from '@/assets/icons/toc-icon.svg'
 import { ui } from '@/i18n/ui'
 import { getPageInfo } from '@/utils/page'
+import { attachHeadingNumbers } from '@/utils/heading-numbering.mjs'
 
 interface Props {
   headings: MarkdownHeading[]
@@ -11,8 +12,25 @@ interface Props {
 const { currentLang } = getPageInfo(Astro.url.pathname)
 const currentUI = ui[currentLang as keyof typeof ui] ?? {}
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function getHeadingDisplayText(text: string, headingNumber?: string) {
+  if (!headingNumber) {
+    return text
+  }
+
+  return text.replace(new RegExp(`^${escapeRegExp(`${headingNumber}.`)}\\s*`), '')
+}
+
 const { headings = [] } = Astro.props
-const filteredHeadings = headings.filter(heading => heading.depth >= 2 && heading.depth <= 4)
+const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth: 6 })
+  .map(heading => ({
+    ...heading,
+    displayText: getHeadingDisplayText(heading.text, heading.number),
+  }))
+  .filter(heading => heading.depth >= 2 && heading.depth <= 4)
 ---
 
 {filteredHeadings.length > 0 && (
@@ -72,7 +90,8 @@ const filteredHeadings = headings.filter(heading => heading.depth >= 2 && headin
                   { 'no-heti toc-links-h4': heading.depth === 4 },
                 ]}
               >
-                {heading.text}
+                {heading.number && <span class="toc-heading-number">{heading.number}.</span>}
+                {heading.displayText}
               </a>
             </li>
           ))}
@@ -97,6 +116,10 @@ a:target-current {
 .toc-links-h2, .toc-links-h3, .toc-links-h4 {
   --at-apply: 'text-balance text-sm font-normal no-underline after:bottom-0.15em 2xl:(text-3.2 c-secondary/80 hover:c-primary hover:font-medium)';
   transition: color 0.15s ease-out, font-weight 0.15s ease-out;
+}
+.toc-heading-number {
+  --at-apply: 'mr-1 inline-block font-medium';
+  font-variant-numeric: tabular-nums;
 }
 
 /* Overflow and Scrollbar */

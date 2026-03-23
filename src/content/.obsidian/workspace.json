@@ -13,12 +13,24 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "posts/llm/Flash Attention.md",
+                "file": "posts/rl/markov-chain.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Flash Attention"
+              "title": "markov-chain"
+            }
+          },
+          {
+            "id": "684f2a50c8eb09ca",
+            "type": "leaf",
+            "state": {
+              "type": "image",
+              "state": {
+                "file": "posts/rl/Attachments/MarkovProcess.png"
+              },
+              "icon": "lucide-image",
+              "title": "MarkovProcess"
             }
           }
         ]
@@ -184,9 +196,22 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "ad585a7f7bfb7fdb",
+  "active": "54dcdb03858e0190",
   "lastOpenFiles": [
+    "posts/rl/Attachments/PolicyIteration.png",
+    "posts/rl/Attachments/MRP.png",
+    "posts/rl/Attachments/MarkovProcess.png",
+    "posts/rl/markov-chain.md",
+    "posts/cuda/CUDA Grid, Block, Thread 和寻址.md",
+    "posts/cuda/CUDA GEMM 优化.md",
+    "posts/rl/Attachments/StateValueandActionValueFunction.png",
+    "posts/rl/Attachments/MRPvsMDP.png",
+    "posts/rl/Attachments/BellmanEquation.png",
     "posts/parallelism/collective-communication.md",
+    "posts/rl/Attachments/markov-process.png",
+    "posts/rl/Attachments",
+    "posts/llm/Flash Attention.md",
+    "posts/rl",
     "posts/llm/LLM 基础.md",
     "posts/llm/LLM 推理并行.md",
     "posts/llm/LLM 推理基础术语解释.md",
@@ -196,29 +221,19 @@
     "posts/_images/3-light.jpeg",
     "posts/_images/4-dark.jpeg",
     "posts/_images/3-dark.jpeg",
-    "posts/_images/2-light.jpeg",
-    "posts/_images/2-dark.jpeg",
-    "posts/_images/1-light.jpeg",
-    "posts/_images/1-dark.jpeg",
     "posts/_images",
     "posts/Untitled.md",
     "posts/parallelism/并行计算基础通信原语.md",
-    "posts/llm/Attachments/mean-pooling-rnn.png",
-    "posts/parallelism/Attachments/all_reduce.png",
     "posts/parallelism/Attachments",
     "posts/parallelism/基础并行同.md",
     "posts/parallelism",
-    "posts/llm/Flash Attention.md",
     "posts/os",
-    "posts/cuda/CUDA GEMM 优化.md",
-    "posts/cuda/CUDA Grid, Block, Thread 和寻址.md",
     "posts/cuda/Attachments",
     "posts/cuda",
     "posts/llm/Attachments/Continuous_Batching_Explained.pdf",
     "posts/llm/Attachments",
     "posts/Universal Post.md",
     "posts/guides/Theme Guide-zh.md",
-    "posts/llm",
     "posts/guides/Theme Guide-en.md",
     "about/about-zh.md"
   ]

@@ -5,7 +5,7 @@ description: ""
 updated: ""
 tags:
   - CUDA
-draft: true
+draft: false
 pin: 0
 toc: true
 lang: ""
