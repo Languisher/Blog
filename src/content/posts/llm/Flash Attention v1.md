@@ -1,5 +1,5 @@
 ---
-title: Flash Attention
+title: Flash Attention v1
 published: 2026-03-04T18:11:44.306Z
 description: 本文介绍 FlashAttention 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
 updated: ""
@@ -36,7 +36,7 @@ $$
 
 ![](Attachments/SoftmaxIllu.png)
 
-## FlashAttention1 Overview
+## FlashAttention v1 Overview
 
 ![](https://miro.medium.com/v2/resize:fit:700/1*L1EnFbS2jq6rFTA9_cXrbg.gif)
 

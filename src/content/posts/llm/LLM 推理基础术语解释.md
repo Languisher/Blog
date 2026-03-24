@@ -175,7 +175,7 @@ Standard Attention 可以建模为：
 优化之后的算法：
 
 ![](Attachments/FlashAttentionAlgo.png)
-具体可以参考我的文章：[Flash Attention](Flash%20Attention.md).
+具体可以参考我的文章：[Flash Attention v1](Flash%20Attention%20v1.md).
 
 ## Load Balancer
 
