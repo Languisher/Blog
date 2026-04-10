@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "posts/cs-basics/Git 基础.md",
+                "file": "posts/llm/moe.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Git 基础"
+              "title": "moe"
             }
           }
         ]
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 217.5
+    "width": 283.5
   },
   "right": {
     "id": "a58d0c57e2ddd9c6",
@@ -184,13 +184,17 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "54dcdb03858e0190",
+  "active": "0172126bd669e334",
   "lastOpenFiles": [
+    "posts/llm/LLM 推理基础术语解释.md",
+    "posts/llm/LLM 推理并行.md",
+    "posts/llm/Attachments/MoE-BaseStructure.png",
+    "posts/llm/moe.md",
+    "posts/cs-basics/Git 基础.md",
     "posts/cs-basics/Attachments/GitHEAD.png",
     "posts/cs-basics/Attachments/TreeBlob3.png",
     "posts/parallelism/collective-communication.md",
     "posts/algos/线性规划和整数线性规划.md",
-    "posts/cs-basics/Git 基础.md",
     "posts/algos",
     "posts/alg.md",
     "posts/new-post.md",
@@ -204,18 +208,13 @@
     "posts/llm/Flash Attention v1.md",
     "posts/llm/LLM 基础.md",
     "posts/rl/强化学习基础：马尔可夫决策过程.md",
-    "posts/llm/moe.md",
-    "posts/llm/LLM 推理并行.md",
-    "posts/llm/Attachments/MoE-BaseStructure.png",
     "posts/llm/Attachments/MoE-EP.png",
     "posts/llm/Attachments/MoE-ExpertSizes.png",
-    "posts/llm/Attachments/MoE-GEMM.png",
     "posts/examples/KaTeX Mathematical Demo-en.md",
     "posts/cuda/CUDA Grid, Block, Thread 和寻址.md",
     "posts/cuda/CUDA GEMM 优化.md",
     "posts/rl/Attachments",
     "posts/rl",
-    "posts/llm/LLM 推理基础术语解释.md",
     "posts/os/OS 程序与进程.md",
     "posts/guides/Markdown Extended Features-en.md",
     "posts/_images",
