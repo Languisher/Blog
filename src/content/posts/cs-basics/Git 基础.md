@@ -46,8 +46,8 @@ type object = blob | tree | commit
 ### 文件系统相关：Blob, Tree 和 Snapshot
 
 文件树中的文件和目录对应 Git 的两种对象：
-- **Blob** - Directory：文件内容（纯数据）
-- **Tree** - File：目录结构（名字 + 指针）
+- **Blob** - File：文件内容（纯数据）
+- **Tree** - Directory：目录结构（名字 + 指针）
 
 ![](Attachments/TreeBlob3.png)
 
