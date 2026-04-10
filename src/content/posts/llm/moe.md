@@ -13,7 +13,7 @@ abbrlink: moe-basics
 ---
 ## 基本介绍
 
-![](attachments/MoE-BaseStructure.png)
+![](Attachments/MoE-BaseStructure.png)
 
 **Mixture of Experts (MoE)** 模型：
 - 将传统 FFN 替代为路由器 + 很多稀疏的 FFN，也叫 Experts
@@ -21,7 +21,7 @@ abbrlink: moe-basics
 
 优势：
 - 在相同的 FLOPS 下模型有更多的参数，因此模型性能表现更好、训练更快（实验证明） 
-- 多一种并行方式：EP ![](attachments/MoE-EP.png)
+- 多一种并行方式：EP ![](Attachments/MoE-EP.png)
 
 为什么 MoE 不是很流行：
 - MoE 在多 node 下优势更明显
@@ -35,14 +35,14 @@ abbrlink: moe-basics
 
 #### 路由方式
 
-如何 match token to experts？![](attachments/MoE-TEMatch.png)
+如何 match token to experts？![](Attachments/MoE-TEMatch.png)
 
 
 
 现在基本上所有模型都是 Token chooses expert，尽管第二种显得更加平衡，第一种目前而言性能是最强的
 
 在 Token chooses expert 类下，有以下几种选择方式：
-- Top-k：最常用 ![](attachments/MoE-TopK.png)
+- Top-k：最常用 ![](Attachments/MoE-TopK.png)
 - Hashing：作为 Baseline. 实验证明单纯哈希也能获得性能收益 
 - RL：计算开销太大，性能不稳定
 - 问题建模 Linear Assignment：开销很大
@@ -75,7 +75,7 @@ $$
 
 在 Expert 数量增多的同时，与 Dense 模型的 FFN 相比，MoE Experts 大小按一定比例进行缩小
 
-![](attachments/MoE-ExpertSizes.png)
+![](Attachments/MoE-ExpertSizes.png)
 
 ### 如何训练
 
@@ -119,7 +119,7 @@ $$
 
 ## Expert 计算优化：Block-sparse GEMM
 
-![](attachments/MoE-GEMM.png)
+![](Attachments/MoE-GEMM.png)
 ## MoE 问题
 
 ### Stochasticity
@@ -128,7 +128,7 @@ $$
 
 由于这和推理过程所属的 batch 动态相关，因此即使随机参数一样，相同的输入也有可能会产生不同的结果。
 
-![](attachments/MoE-Stochastic.png)
+![](Attachments/MoE-Stochastic.png)
 ### Stability
 
 为了减少 Softmax 带来的不稳定，训练的时候用 Float 32，以及 auxiliary z-loss.
