@@ -9,6 +9,7 @@ import rehypeSlug from 'rehype-slug'
 import remarkDirective from 'remark-directive'
 import remarkMath from 'remark-math'
 import UnoCSS from 'unocss/astro'
+import path from 'node:path'
 import { base, defaultLocale, themeConfig } from './src/config'
 import { langMap } from './src/i18n/config'
 import { rehypeCodeCopyButton } from './src/plugins/rehype-code-copy-button.mjs'
@@ -18,6 +19,7 @@ import { rehypeHeadingNumbering } from './src/plugins/rehype-heading-numbering.m
 import { rehypeImageProcessor } from './src/plugins/rehype-image-processor.mjs'
 import { remarkContainerDirectives } from './src/plugins/remark-container-directives.mjs'
 import { remarkLeafDirectives } from './src/plugins/remark-leaf-directives.mjs'
+import { remarkPostLinks } from './src/plugins/remark-post-links.mjs'
 import { remarkReadingTime } from './src/plugins/remark-reading-time.mjs'
 
 const { url: site } = themeConfig.site
@@ -65,6 +67,7 @@ export default defineConfig({
     remarkPlugins: [
       remarkDirective,
       remarkMath,
+      [remarkPostLinks, { postsDir: path.resolve('./src/content/posts'), base, defaultLocale }],
       remarkContainerDirectives,
       remarkLeafDirectives,
       remarkReadingTime,

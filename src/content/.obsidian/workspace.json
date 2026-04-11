@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "posts/cs-basics/Git 基础.md",
+                "file": "posts/rl/强化学习基础（2）：时序差分算法.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Git 基础"
+              "title": "强化学习基础（2）：时序差分算法"
             }
           }
         ]
@@ -186,13 +186,20 @@
   },
   "active": "0172126bd669e334",
   "lastOpenFiles": [
-    "posts/llm-infra/modern-llm-inference-system-1.md",
+    "posts/rl/强化学习基础（1）：马尔可夫决策过程.md",
+    "posts/rl/强化学习基础（2）：时序差分算法.md",
+    "posts/llm-infra/vLLM v1 架构介绍.md",
+    "posts/llm-infra/Attachments/LLMEngineCore.png",
+    "posts/llm-infra/Attachments/LLMEngine.png",
+    "posts/llm-infra/Attachments",
+    "posts/llm/LLM 推理基础术语解释.md",
+    "about/about-zh.md",
+    "about/about-en.md",
+    "posts/cs-basics/Git 基础.md",
     "posts/llm/moe.md",
     "posts/llm/Flash Attention v1.md",
-    "posts/llm/LLM 推理基础术语解释.md",
     "posts/llm/LLM 推理并行.md",
     "posts/llm/Attachments/MoE-BaseStructure.png",
-    "posts/cs-basics/Git 基础.md",
     "posts/cs-basics/Attachments/GitHEAD.png",
     "posts/cs-basics/Attachments/TreeBlob3.png",
     "posts/parallelism/collective-communication.md",
@@ -209,8 +216,6 @@
     "posts/_images/1-dark.jpeg",
     "posts/llm/LLM 基础.md",
     "posts/rl/强化学习基础：马尔可夫决策过程.md",
-    "posts/llm/Attachments/MoE-EP.png",
-    "posts/llm/Attachments/MoE-ExpertSizes.png",
     "posts/examples/KaTeX Mathematical Demo-en.md",
     "posts/cuda/CUDA Grid, Block, Thread 和寻址.md",
     "posts/cuda/CUDA GEMM 优化.md",
@@ -225,10 +230,7 @@
     "posts/parallelism/基础并行同.md",
     "posts/parallelism",
     "posts/os",
-    "posts/cuda/Attachments",
     "posts/Universal Post.md",
-    "posts/guides/Theme Guide-zh.md",
-    "posts/guides/Theme Guide-en.md",
-    "about/about-zh.md"
+    "posts/guides/Theme Guide-zh.md"
   ]
 }
