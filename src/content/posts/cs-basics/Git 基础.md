@@ -3,8 +3,7 @@ title: Git 基础（一）：Git 对象和引用
 published: 2026-03-24T19:37:40.472Z
 description: ""
 updated: 2026-04-10T11:11:30.472Z
-tags:
-  - CS-Basics
+tags: [CS-Basics]
 draft: false
 pin: 0
 toc: true

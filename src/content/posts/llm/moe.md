@@ -3,8 +3,7 @@ title: MoE 模型基础
 published: 2026-03-24T19:33:03.058Z
 description: ""
 updated: ""
-tags:
-  - LLM
+tags: [LLM]
 draft: true
 pin: 0
 toc: true

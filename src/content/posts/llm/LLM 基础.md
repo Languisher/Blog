@@ -3,8 +3,7 @@ title: LLM 基础
 published: 2026-03-01T15:24:05.272Z
 description: ""
 updated: ""
-tags:
-  - LLM
+tags: [LLM]
 draft: true
 pin: 0
 toc: true
@@ -58,4 +57,3 @@ $$
 每个上下文 token 现在有两个向量需要表示：
 - $K$ 值：与 Query 进行点乘计算，以得到该 token 的权重值
 - $V$ 值：实际表示该 token 意义，即原先的 embedding 的意义
-

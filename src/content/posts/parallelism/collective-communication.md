@@ -3,9 +3,7 @@ title: 并行计算基础通信原语
 published: 2026-03-10T08:51:38.942Z
 description: ""
 updated: ""
-tags:
-  - Communication
-  - Parallelism
+tags: [Communication, Parallelism]
 draft: false
 pin: 0
 toc: true

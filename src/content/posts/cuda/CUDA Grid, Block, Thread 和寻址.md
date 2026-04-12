@@ -3,8 +3,7 @@ title: CUDA 寻址
 published: 2026-03-04T14:45:48.564Z
 description: ""
 updated: ""
-tags:
-  - CUDA
+tags: [CUDA]
 draft: false
 pin: 0
 toc: true

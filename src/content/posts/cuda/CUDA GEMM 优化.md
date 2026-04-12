@@ -3,8 +3,7 @@ title: gemm-optimization
 published: 2026-03-04T17:24:11.190Z
 description: ""
 updated: ""
-tags:
-  - CUDA
+tags: [CUDA]
 draft: true
 pin: 0
 toc: true
