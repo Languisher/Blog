@@ -1,10 +1,10 @@
 ---
-title: LLM 推理基础 (1)：Prefix Cache
+title: LLM 推理基础（1）：Prefix Cache
 published: 2026-04-11T09:21:04.373Z
 description: ""
 updated: ""
 tags: []
-draft: true
+draft: false
 pin: 0
 toc: true
 lang: ""
@@ -35,9 +35,20 @@ abbrlink: llm-infra-prefix-cache
 
 ## vLLM v1 Prefix Cache 实现
 
+下图展示 vLLM v1 KV Cache 管理组件。KV Cache 被组织为固定大小的 **Block**，作为内存管理的基本单位。系统主要包括以下组件：
+- **Request Block Table（请求块表）**：维护每个请求对应的 KV Cache Block 序列（逻辑映射）。由于前缀复用，不同请求之间可以共享同一 Block。
+- **Prefix Cache Index（前缀缓存索引）**：基于前缀的哈希，将 prefix 映射到已有的 KV Cache Block，用于快速查找和复用已计算的前缀。
+- **Block Pool**：维护空闲的 KV Cache Blocks（通常通过链表结构），用于高效分配与回收，避免频繁内存分配带来的开销和碎片问题。
 
 ![](Attachments/vLLMv1KVCacheManager.png)
 
+在有新请求进来的时候：
+1. 系统首先按 block 粒度，根据请求预先计算好的 block hash，在 cache 中按前缀顺序查找可复用的 **完整 KV Cache Blocks**。一旦某个 block 不命中，就停止继续向后匹配。命中的 block 可能有两种状态：
+    - ref_cnt > 0：当前正被其他请求使用；
+    - ref_cnt = 0：当前无请求使用，但仍保留在 cache 中，同时位于 Free Block Queue。
+    - 这两种 block 都可以直接复用；若命中的是 free queue 中的 block，需要先将其从 free queue 中移除，再增加引用计数。
+2. 在扣除这些已复用的 block 之后，系统计算该请求还需要新分配多少 block，并检查当前是否有足够可用 block。
+3. 对于无法复用的后续部分，系统从 Free Block Queue 中取出新的 block 供该请求使用；随着后续计算写入 token，当某个 block 被填满后，才会进一步更新其 hash metadata，并加入 cache，供未来请求复用。
 ## 参考资料
 
 - [vLLM的prefix cache为何零开销](https://zhuanlan.zhihu.com/p/1896927732027335111)

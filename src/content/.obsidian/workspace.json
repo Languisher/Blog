@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "posts/llm-infra/LLM 推理基础 (2)：Sampling 采样.md",
+                "file": "posts/llm-infra/LLM 推理基础 (1)：Prefix Cache 前缀 KV Cache 缓存.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "LLM 推理基础 (2)：Sampling 采样"
+              "title": "LLM 推理基础 (1)：Prefix Cache 前缀 KV Cache 缓存"
             }
           }
         ]
@@ -184,11 +184,15 @@
       "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
-  "active": "54dcdb03858e0190",
+  "active": "0172126bd669e334",
   "lastOpenFiles": [
-    "posts/llm-infra/Attachments/BeamSearchExample.png",
-    "posts/llm-infra/LLM 推理基础 (1)：Prefix Cache 前缀 KV Cache 缓存.md",
     "posts/llm-infra/LLM 推理基础 (2)：Sampling 采样.md",
+    "posts/llm-infra/LLM 推理基础 (1)：Prefix Cache 前缀 KV Cache 缓存.md",
+    "posts/rl/强化学习基础（1）：马尔可夫决策过程.md",
+    "posts/rl/强化学习基础（2）：时序差分算法.md",
+    "posts/llm-infra/vLLM v1 架构介绍.md",
+    "posts/cs-basics/Git 基础.md",
+    "posts/llm-infra/Attachments/BeamSearchExample.png",
     "posts/llm-infra/Attachments/LLMGenerationParameters.png",
     "posts/llm-infra/Attachments/LLMSamplingProblems.png",
     "posts/llm-infra/Attachments/TemperatureImpact2.png",
@@ -196,20 +200,15 @@
     "posts/llm-infra/Attachments/LLMLogits.png",
     "posts/llm-infra/Attachments/vLLMv1KVCacheManager.png",
     "posts/llm-infra/Attachments/PrefixCache.png",
-    "posts/rl/强化学习基础（2）：时序差分算法.md",
-    "posts/rl/强化学习基础（1）：马尔可夫决策过程.md",
-    "posts/llm-infra/vLLM v1 架构介绍.md",
     "posts/llm-infra/Attachments/LLMEngineCore.png",
     "posts/llm-infra/Attachments/LLMEngine.png",
     "posts/llm-infra/Attachments",
     "posts/llm/LLM 推理基础术语解释.md",
     "about/about-zh.md",
     "about/about-en.md",
-    "posts/cs-basics/Git 基础.md",
     "posts/llm/moe.md",
     "posts/llm/Flash Attention v1.md",
     "posts/llm/LLM 推理并行.md",
-    "posts/llm/Attachments/MoE-BaseStructure.png",
     "posts/parallelism/collective-communication.md",
     "posts/algos/线性规划和整数线性规划.md",
     "posts/algos",
