@@ -1,23 +1,24 @@
 ---
-title: Flash Attention v1
+title: Attention 模块优化 1：FlashAttention v1避免中间 attention 矩阵的显式存储
 published: 2026-03-04T18:11:44.306Z
-description: 本文介绍 FlashAttention 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
-updated: ""
-tags: [LLM, Attention]
+description: 本文介绍 FlashAttention 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造中间 attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
+updated: 2026-04-14T11:26:53.306Z
+tags:
+  - LLM-Infra
 draft: false
 pin: 0
 toc: true
 lang: zh
-abbrlink: flash-attention
+abbrlink: flash-attention-v1
 ---
-本文介绍 FlashAttention 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
+本文介绍 FlashAttentionV1 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
 
 ![](Attachments/FlashAttentionvsStandardAttention.png)
 
-## Naive Attention
+## Naive Attention 问题分析
 
 Standard Attention 可以建模为：
-![](Attachments/StandardAttention.png)
+![](Attachments/StandardAttentionImplementation.png)
 
 其中 **(Safe) softmax 函数**定义如下. 对于一个 vector $x \in \mathbb{R}^d$，为了避免指数爆炸，定义：
 $$
@@ -26,10 +27,20 @@ m(x) := \max_{i}x_{i}, \quad \text{softmax}(x) := \frac{\begin{bmatrix}
 \end{bmatrix}}{\sum_{j=1}^d e^{x_{j}-m(x)}} \in \mathbb{R}^d
 $$
 
-上图左侧表示 Algorithm 0 的流程。可以看到这会导致中间结果的 **materialization**：需要显式构建大小为 $N \times N$ 的矩阵 $S$ 和 $P$，并将其写入和再次从内存中读取以完成后续计算。这会产生大量的 HBM 访问开销。
+下面展示计算 Attention Block 的算法流程。可以看到：
+- 标准 Attention 需要显式构造中间矩阵（如 $S = QK^\top$ 和 $P = \mathrm{softmax}(S)$），其规模为 $N \times N$
+- 这些中间结果需要在 HBM 中反复写入和读取，带来大量的数据搬运开销
+- 因此，Attention 的执行往往受限于**内存带宽（memory bandwidth）**，而非计算能力
+
+![](Attachments/截屏2026-04-14%2011.09.21.png)
 
 一个自然的优化思路是将上述三个步骤 **融合为一个 kernel（Fused Kernel）**，使得每个元素在加载后立即参与后续计算，从而避免中间矩阵的物化。然而，这种融合会面临两个主要挑战：
-- **Softmax 的归一化依赖**：如下图所示，softmax 的计算需要知道该行（或列）所有元素的归一化因子（即分母部分）以及向量中所有元素的最大值 $m(x)$，因此在未遍历完整个向量之前无法得到最终结果。这使得 GEMM 操作和 softmax 操作没有办法 fuse.
+- **Softmax 的归一化依赖**：如下图所示，
+	- 为了计算 softmax 需要知道
+		- 向量中所有元素的最大值 $m(x)$
+		- 该行（或列）所有元素的归一化因子（即分母部分）
+	- 因此在未遍历完整个向量之前无法得到最终结果。
+	- 这使得 GEMM 操作和 softmax 操作没有办法融合。
 - **训练阶段的反向传播需求**：在训练过程中，需要保存 softmax 的中间结果（例如概率矩阵  $P$），以便在 backward pass 中计算梯度。
 
 ![](Attachments/SoftmaxIllu.png)
@@ -38,7 +49,7 @@ $$
 
 ![](https://miro.medium.com/v2/resize:fit:700/1*L1EnFbS2jq6rFTA9_cXrbg.gif)
 
-## Tiling
+## 背景：Tiling
 
 对于矩阵乘法（GEMM）的优化，一个核心思想是 **Tiling（分块计算）**。其基本动机是减少对慢速内存（如 HBM/DRAM）的访问次数，使数据在片上高速存储（如 cache / shared memory）中被尽可能多次复用。
 
@@ -102,7 +113,6 @@ $$
 最终返回矩阵 $C$。
 
 这种 **分块计算（tiling）** 的关键优势在于：
-
 - 每个 tile（如 $A_i$ 或 $B_j$）只需从全局内存读取一次
 - 在片上内存中可以被多次复用
 - 显著减少 HBM 访问带宽压力
@@ -111,9 +121,15 @@ $$
 
 ### Tiling in FlashAttention
 
-在 FlashAttention 中，因为需要对 $Q.K$ 以及 $f(Q.K).V$ 做 GEMM 运算，因此将 $Q$, $K$ 和 $V$ 矩阵都进行分块，切分维度在 sequence dimension 上，即分别将 $Q$ 和 {$K$,$V$} 切分成 $\mathbb{R}^{B_{r}\times d}$ 和 $\mathbb{R}^{B_{c} \times d}$ 的块。
+在 FlashAttention 中，因为需要对 $Q.K$ 以及 $f(Q.K).V$ 做 GEMM 运算，因此将 $Q$, $K$ 和 $V$ 矩阵都进行分块
+- 切分维度在 sequence dimension 上，即分别将 $Q$ 和 {$K$,$V$} 切分成形状为 $\mathbb{R}^{B_{r}\times d}$ 和 $\mathbb{R}^{B_{c} \times d}$ 的块。
+- 因此 $Q$  和 $\{K, V\}$ 被切分成 $T_{r} = \left\lceil  \frac{N}{B_{r}}  \right\rceil$ 和 $T_{c}= \left\lceil  \frac{N}{B_{c}}  \right\rceil$ 数量的小块。
 
-在计算中，outer loop 是 $K$ 和 $V$ 矩阵（对应上一小节的 $B$ 矩阵，按列切分）；inner loop 是 $Q$ 以及形状相同的 $O$ 矩阵。这可以使得 $K$ 和 $V$ 的复用最大化。在每个 tile 内都进行了大小为
+在计算中，
+- Outer loop 是 $K$ 和 $V$ 矩阵（对应上一小节的 $B$ 矩阵，按列切分）
+- Inner loop 是 $Q$ 以及形状相同的 $O$ 矩阵
+- 这么设计 Outer-Inner loop 是为了让“大且昂贵”的数据 $(K,V)$ 尽可能少地从 HBM 读取
+- 在每个 tile 内都进行了大小为
 
 $$
 \mathbb{R}^{B_{r}\times d} \times \mathbb{R}^{d \times B_{c}} \to \mathbb{R}^{B_{r}\times B_{c}}
@@ -137,11 +153,19 @@ $$
 
 而实际上 softmax 可以采用增量的方式来减少一次遍历，这是因为 softmax 运算中的分母部分可以跟随 $x$ 最大值的更新而更新。
 
-假设遍历到第 $j$ 个元素，
+假设我们希望从前面第 $j-1$ 个元素的 softmax 结果推导第 $j$ 个元素的结果，
 - **更新所有元素的最大值**：得到 $m_{j-1}(x) = \max(x_{1},\dots,x_{j-1})$，因此 $m_{j}(x) := \max{(m_{j-1}(x), x_{j})}$，其满足 $m_{j}(x) \geq m_{j-1}(x)$
-- **放缩：更新归一化因子，即 softmax 运算中的分母部分**：得到 $d_{j-1}(x) = \sum_{t=1}^{j-1}e^{t-m_{j-1}(x)}$. 因此 $d_{j}(x) := d_{j-1} \times e^{m_{j-1}(x) - m_{j}(x)} + e^{x_{j }-m_{j}(x)}$
+- **放缩：当最大值变大时需要把旧的 sum 整体所缩小，即 softmax 运算中的分母部分**：定义在第 $j$ 个元素 softmax 运算的分母部分是 $$d_{j-1}(x) = \sum_{t=1}^{j-1}e^{x_{t}-m_{j-1}(x)}$$因此 $$d_{j}(x) := d_{j-1}(x) \times \boxed{e^{m_{j-1}(x) - m_{j}(x)}} + e^{x_{j }-m_{j}(x)}$$
 
-中间推导过程：
+再最后一步，即在第 $n$ 个元素分母放缩完之后，分子部分基于更新之后的元素最大值进行放缩：最后再遍历一次向量 $x$，逐元素计算最终的 softmax 输出：
+$$
+\text{softmax}(x) := \frac{\begin{bmatrix}
+\dots  & e^{x_{i}\boxed{-m_{n}(x) }} & \dots
+\end{bmatrix}}{d_{n}(x)} \in \mathbb{R}^d
+$$
+
+
+其中分母放缩推导过程推导：
 
 $$
 \begin{aligned}
@@ -153,14 +177,6 @@ d_j(x)
 +
 e^{x_j-m_j(x)}
 \end{aligned}
-$$
-
-
-最后再遍历一次向量 $x$，逐元素计算最终的 softmax 输出：
-$$
-\text{softmax}(x) := \frac{\begin{bmatrix}
-\dots  & e^{x_{i}-m_{d}(x) } & \dots
-\end{bmatrix}}{d_{n}(x)} \in \mathbb{R}^d
 $$
 
 这样 softmax 的计算只需要 **两次遍历向量** $x$，总的内存访问量约为 $2d$。
@@ -176,8 +192,13 @@ $$
 在上一小节中，我们介绍了如何在遍历向量 $x' = \begin{bmatrix}x_1 & \dots & x_{j-1}\end{bmatrix}$ 时，通过新元素 $x_j$ 对 softmax 的统计量进行增量更新，从而得到新的归一化因子。
 
 在这一个小节，我们运用同样的思想 merge 两个向量 $x^{(1)} \in \mathbb{R}^B$ 和 $x^{(2)} \in \mathbb{R}^B$ 的 softmax 结果，从而得到拼接向量 $x = \begin{bmatrix} x^{(1)}  \\ x^{(2)} \end{bmatrix} \in \mathbb{R}^{2B}$ 的 softmax 拼接结果。
-对于每个向量，我们保存其最大值 $m^{(1)} = \max_{i}\{x_{i}^{(1)}\}$ 和 $m^{(2)} = \max_{i}\{x_{i}^{(2)}\}$ 和分母（即归一化因子）的结果：$l^{(1)}= \sum_{i} e^{x_{i}^{(1)} - m^{(1)}}$ 和 $l^{(2)} = \sum_{i} e^{x_{i}^{(2)}-m^{(2)}}$，接下来的操作基于这 4 个 state $(m^{(1)}, m^{(2)}, l^{(1)}, l^{(2)})$ 进行。
 
+对于每个向量，我们保存
+- 其最大值 $m^{(1)} = \max_{i}\{x_{i}^{(1)}\}$ 和 $m^{(2)} = \max_{i}\{x_{i}^{(2)}\}$ 
+- q其分母（即归一化因子）的结果：$l^{(1)}= \sum_{i} e^{x_{i}^{(1)} - m^{(1)}}$ 和 $l^{(2)} = \sum_{i} e^{x_{i}^{(2)}-m^{(2)}}$
+- 接下来的操作基于这 4 个 state $(m^{(1)}, m^{(2)}, l^{(1)}, l^{(2)})$ 进行。
+
+**符号定义**。
 定义原来两个向量 softmax 计算中的分子向量 $f^{(1)} = \begin{bmatrix} \dots &  e^{x_{i}^{(1)}- m^{(1)}} & \dots\end{bmatrix}$ 和 $f^{(2)} = \begin{bmatrix} \dots &  e^{x_{i}^{(2)}- m^{(2)}} & \dots\end{bmatrix}$ ，这意味着：
 $$
 \text{softmax}(x^{(i)}) = \frac{f^{(i)}}{l^{(i)}} \in \mathbb{R}^B, \quad i \in \{1, 2\}
@@ -208,13 +229,17 @@ $$
 
 ### Online Softmax in FlashAttention
 
-现在我们放在 Attention 情况下，思想也是完全相同：更新最大值，再对分子分母进行放缩。
+现在我们放在 Attention 情况下，思想也是完全相同：更新最大值，再对分子分母进行放缩。在 Attention 计算中，
+- 每一行，对应一个 query 是一个独立 softmax
+- 每个 query 在扫描 $K$ 的过程中做 online softmax
 
+下图是 Flash Attention v1 原文的求解算法：
 ![](Attachments/FlashAttentionAlgo1.png)
 
-在进行矩阵分块计算的背景下，假设 outer loop index = $j$，inner loop index = $i$，且 $\{Q_{i}, O_{i}\} \in B_{r} \times d$，$\{K_{j}, V_{j}\} \in d \times B_{c}$，我们希望对于：
+在进行矩阵分块计算的背景下，假设 outer loop index = $j$，inner loop index = $i$，输出矩阵是 $O$，且 $\{Q_{i}, O_{i}\} \in B_{r} \times d$，$\{K_{j}, V_{j}\} \in d \times B_{c}$，我们希望
+- 在不断的根据 tiling 计算结果之后更新 softmax 结果
 - 之前计算结果 $O_{i}\in B_{r} \times d$ 的 softmax 计算，可以表示为 $$O_{i} =  \frac{\text{numerator}}{l_{i}}, \quad \text{where} \; \text{numerator}=O_{i}l_{i}$$ 且 numerator 和 $m_{i}$ 相关（当 $m_{i}$ 改变时分子也要进行缩放），以及是 softmax 运算和 $V$ 矩阵计算的结果
-- 以及当前 tile 的局部 softmax 计算，可以表示为 $$\tilde{\text{softmax}}_{ij} (\tilde{m}_{ij}) = \frac{\tilde{P}_{ij}}{\tilde{l}_{ij}} \in \mathbb{R}^{B_{r} \times B_{c}}$$
+- 以及当前 tile 的局部 softmax 计算，可以表示为（但不会进行显示计算！！） $$\tilde{\text{softmax}}_{ij} (\tilde{m}_{ij}) = \frac{\tilde{P}_{ij}}{\tilde{l}_{ij}} \in \mathbb{R}^{B_{r} \times B_{c}}$$
 进行合并。
 
 **首先是 tile 内部的 softmax 计算**。第 10 行是 tile 内部的 state 计算：$\tilde{m}_{ij}$ 表示每一行的最大值，$\tilde{P}_{ij}$ 表示每一行的 softmax 分子，$\tilde{l}_{ij}$ 表示每一行的 softmax 分母。
