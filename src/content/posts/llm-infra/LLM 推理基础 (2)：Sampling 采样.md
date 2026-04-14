@@ -129,5 +129,5 @@ $$
 
 ## 参考资料
 
-- [LLM推理采样(Sampling)常见知识概览](https://zhuanlan.zhihu.com/p/1981752176578667658
+- [LLM推理采样(Sampling)常见知识概览](https://zhuanlan.zhihu.com/p/1981752176578667658)
 - [7 LLM Generation Parameters—What They Do and How to Tune Them?](https://www.marktechpost.com/2025/10/14/7-llm-generation-parameters-what-they-do-and-how-to-tune-them/)
