@@ -1,16 +1,22 @@
 ---
 title: 并行计算基础通信原语
 published: 2026-03-10T08:51:38.942Z
-description: ""
-updated: ""
-tags: [Communication, Parallelism]
+description: 本文介绍了在并行计算中常见的通信原语。
+updated: 2026-04-17T06:28:27Z
+tags:
+  - Communication
+  - Parallelism
 draft: false
 pin: 0
 toc: true
 lang: ""
 abbrlink: collective-communication
 ---
-本文会介绍在并行计算中常见的通信原语。
+本文介绍了在并行计算中常见的通信原语，包括：
+- Reduce 操作
+- Gather / Scatter 操作
+- All + X 操作
+- Broadcast 操作
 
 ![](Attachments/collective_communication.png)
 ## 基础概念定义
@@ -21,7 +27,7 @@ abbrlink: collective-communication
 - **All** 表示通信的 dst 是所有设备
 - **Reduce** 表示对于数据执行 associative/commutative 计算（例如求和/求平均）
 - **Gather** 表示将“分散”（在各个设备）的数据 shard 合并起来
-- **Scatter** 则是 Gather 的反面，将完整的数据分块分发给多个设备
+- **Scatter** 则是 Gather 的反面，将完整的数据*分块*分发给多个设备
 
 ## 集合通信操作定义
 ### 局部和全局
@@ -138,7 +144,7 @@ $$
 
 因此，一共是
 $$
-2 \frac{p-1}{p} N
+2 \times \frac{p-1}{p} N
 $$
 数据，当 $p$ 数量很大的时候近似于 $2N$.
 ## 总结

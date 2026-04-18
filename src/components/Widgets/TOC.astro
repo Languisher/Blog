@@ -37,7 +37,7 @@ const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth:
   // TOC Container
   <div
     id="toc-container"
-    class="mb-6 uno-round-border bg-secondary/5 2xl:(fixed left-0 top-44.5 max-w-[min(calc(50vw-38rem),13rem)] border-none bg-secondary/0)"
+    class="mb-6 uno-round-border bg-secondary/5 lg:(fixed right-[max(5rem,calc(50vw-35rem))] top-46 bottom-[var(--toc-bottom-gap,2rem)] mb-0 w-14rem border-none bg-secondary/0 overflow-hidden flex flex-col)"
   >
     {/* Hidden Checkbox */}
     <input
@@ -46,23 +46,28 @@ const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth:
       hidden
     />
     {/* TOC Toggle */}
-    <div class="relative h-12 w-full">
+    <div class="relative h-12 w-full lg:h-auto">
       <label
         for="toc-toggle"
-        class="absolute inset-0 flex cursor-pointer items-center 2xl:(static flex c-secondary/60 transition-colors ease-out hover:c-primary)"
+        class="absolute inset-0 flex cursor-pointer items-center lg:(static cursor-default flex-col items-start gap-2 c-secondary/60)"
       >
         {/* Title on Mobile */}
         <span id="toc-mobile-text">
           {currentUI.toc}
         </span>
 
-        {/* Icon on Desktop */}
-        <TocIcon
-          id="toc-desktop-icon"
-          aria-hidden="true"
-          class="ml-4 hidden aspect-square w-4.2 2xl:(mt-4 block origin-center active:scale-90!)"
-          fill="currentColor"
-        />
+        {/* Title on Desktop */}
+        <div id="toc-desktop-header">
+          <TocIcon
+            id="toc-desktop-icon"
+            aria-hidden="true"
+            class="aspect-square w-4.2"
+            fill="currentColor"
+          />
+          <span class="text-sm font-semibold">
+            {currentUI.toc}
+          </span>
+        </div>
       </label>
     </div>
 
@@ -76,6 +81,7 @@ const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth:
         <ul id="toc-links-list">
           {filteredHeadings.map(heading => (
             <li
+              data-toc-item={heading.slug}
               class:list={{
                 'ml-0': heading.depth === 2,
                 'ml-4': heading.depth === 3,
@@ -84,6 +90,7 @@ const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth:
             >
               <a
                 href={`#${heading.slug}`}
+                data-toc-link={heading.slug}
                 class:list={[
                   { 'no-heti toc-links-h2': heading.depth === 2 },
                   { 'no-heti toc-links-h3': heading.depth === 3 },
@@ -104,18 +111,35 @@ const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth:
 <!-- Override heti default styles  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> -->
 <style>
 #toc-mobile-text {
-  --at-apply: 'ml-4 font-semibold 2xl:hidden';
+  --at-apply: 'ml-4 font-semibold lg:hidden';
+}
+#toc-desktop-header {
+  --at-apply: 'hidden lg:flex items-center gap-2';
 }
 #toc-links-list {
-  --at-apply: 'mb-2.5 mt-1 list-none pl-0 2xl:(mb-1 space-y-1) space-y-1.1';
+  --at-apply: 'mb-2 mt-1 list-none pl-0 lg:(mb-0.5 space-y-0.35) space-y-0.8';
   scroll-target-group: auto;
 }
-a:target-current {
-    --at-apply: '2xl:(c-primary font-medium)';
+#toc-links-list li {
+  --at-apply: 'relative transition-[transform] duration-150 ease-out';
+}
+#toc-links-list li::before {
+  --at-apply: 'absolute left--3 top-0.45rem h-0.95rem w-0.35rem rounded-full bg-primary/0 transition-[background-color,opacity,transform] duration-150 ease-out';
+  content: '';
+}
+.toc-item-active {
+  --at-apply: 'translate-x-0.8';
+}
+.toc-item-active::before {
+  --at-apply: 'bg-primary/90';
+}
+.toc-link-active {
+  --at-apply: 'c-primary font-semibold bg-primary/8';
+  box-shadow: inset 0 0 0 1px oklch(var(--un-preset-theme-colors-primary) / 0.08);
 }
 .toc-links-h2, .toc-links-h3, .toc-links-h4 {
-  --at-apply: 'text-balance text-sm font-normal no-underline after:bottom-0.15em 2xl:(text-3.2 c-secondary/80 hover:c-primary hover:font-medium)';
-  transition: color 0.15s ease-out, font-weight 0.15s ease-out;
+  --at-apply: 'block rounded-lg px-2.2 py-1 text-balance text-sm leading-1.45em font-normal no-underline after:bottom-0.15em lg:(text-3.2 c-secondary/80 hover:c-primary hover:font-medium hover:bg-primary/5)';
+  transition: color 0.15s ease-out, font-weight 0.15s ease-out, background-color 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 .toc-heading-number {
   --at-apply: 'mr-1 inline-block font-medium';
@@ -124,10 +148,10 @@ a:target-current {
 
 /* Overflow and Scrollbar */
 #toc-toggle:checked ~ #toc-accordion-wrapper #toc-accordion-content {
-  --at-apply: 'overflow-y-auto 2xl:overflow-hidden';
+  --at-apply: 'overflow-y-auto lg:overflow-y-auto';
 }
 #toc-accordion-content {
-  --at-apply: 'max-h-59 overflow-hidden pl-4 pr-6 2xl:(max-h-[calc(100vh-27.5rem)] overflow-y-auto scrollbar-hidden)';
+  --at-apply: 'max-h-59 overflow-hidden pl-4 pr-6 lg:(max-h-none h-full min-h-0 pl-0 pr-0 overflow-y-auto scrollbar-hidden)';
   scrollbar-width: thin;
   scrollbar-color: oklch(var(--un-preset-theme-colors-secondary) / 0.15) transparent;
 }
@@ -146,28 +170,77 @@ a:target-current {
 
 /* Desktop Initial State */
 #toc-accordion-wrapper {
-  --at-apply: '2xl:rows-[1fr]';
+  --at-apply: 'lg:(rows-[1fr] min-h-0 flex-1)';
 }
 #toc-toggle:checked ~ #toc-accordion-wrapper {
-  --at-apply: '2xl:rows-[0fr]';
+  --at-apply: 'lg:rows-[1fr]';
+}
+#toc-container {
+  --toc-bottom-gap: 2rem;
 }
 </style>
 
 <script>
-const is2xl = window.matchMedia('(min-width: 1536px)')
+const isDesktop = window.matchMedia('(min-width: 1024px)')
+const SETUP_RETRY_LIMIT = 12
 
 let ticking = false
-let lastLink: Element | null = null
+let lastLink: HTMLAnchorElement | null = null
+let activeLink: HTMLAnchorElement | null = null
+let activeItem: HTMLLIElement | null = null
+let headingObserver: IntersectionObserver | null = null
+let contentObserver: MutationObserver | null = null
+let setupTimer: number | null = null
+let setupAttempt = 0
+
+function setActiveLink(nextLink: HTMLAnchorElement | null) {
+  if (activeLink === nextLink) {
+    return
+  }
+
+  if (activeItem) {
+    activeItem.classList.remove('toc-item-active')
+  }
+  activeLink?.classList.remove('toc-link-active')
+  activeLink?.removeAttribute('aria-current')
+  nextLink?.classList.add('toc-link-active')
+  nextLink?.setAttribute('aria-current', 'location')
+  activeItem = nextLink
+    ? document.querySelector<HTMLLIElement>(`#toc-links-list li[data-toc-item="${CSS.escape(nextLink.dataset.tocLink ?? '')}"]`)
+    : null
+  activeItem?.classList.add('toc-item-active')
+  activeLink = nextLink
+}
+
+function getTocLinks() {
+  return Array.from(document.querySelectorAll<HTMLAnchorElement>('#toc-links-list a'))
+}
+
+function hasHeading(
+  item: { link: HTMLAnchorElement, heading: HTMLElement | null },
+): item is { link: HTMLAnchorElement, heading: HTMLElement } {
+  return item.heading !== null
+}
+
+function getHeadingLinkMap() {
+  return getTocLinks().map((link) => {
+    const id = link.getAttribute('href')?.slice(1) ?? ''
+    const heading = id ? document.getElementById(id) : null
+    return { link, heading }
+  }).filter(hasHeading)
+}
+
+function hasRenderableHeadings() {
+  return getHeadingLinkMap().length > 0
+}
 
 // Find and scroll to the active link
 function scrollToActiveLink() {
-  const tocList = document.getElementById('toc-links-list')
-  if (!tocList) {
+  if (!activeLink) {
     ticking = false
     return
   }
 
-  const activeLink = tocList.querySelector('a:target-current')
   if (activeLink && activeLink !== lastLink) {
     activeLink.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     lastLink = activeLink
@@ -178,31 +251,175 @@ function scrollToActiveLink() {
 
 // Throttle scroll events
 function handleScroll() {
-  if (!ticking && is2xl.matches) {
+  if (!ticking && isDesktop.matches) {
     window.requestAnimationFrame(scrollToActiveLink)
     ticking = true
   }
 }
 
-// Initialize scroll listener
-function setupAutoScroll() {
-  ticking = false
-  lastLink = null
-
-  const tocList = document.getElementById('toc-links-list')
-  if (!tocList || !CSS.supports('selector(:target-current)')) {
+function updateActiveHeading() {
+  const headingLinkMap = getHeadingLinkMap()
+  if (headingLinkMap.length === 0) {
+    setActiveLink(null)
     return
   }
 
+  const activationLine = Math.max(window.innerHeight * 0.22, 140)
+
+  const current = headingLinkMap
+    .filter(({ heading }) => heading.getBoundingClientRect().top <= activationLine)
+    .at(-1)
+    ?? headingLinkMap.find(({ heading }) => heading.getBoundingClientRect().top > 0)
+    ?? headingLinkMap[headingLinkMap.length - 1]
+
+  setActiveLink(current.link)
+}
+
+function observeHeadings() {
+  const headingLinkMap = getHeadingLinkMap()
+  if (headingLinkMap.length === 0) {
+    return false
+  }
+
+  headingObserver = new IntersectionObserver(() => {
+    updateActiveHeading()
+    handleScroll()
+  }, {
+    rootMargin: '-22% 0px -58% 0px',
+    threshold: [0, 0.15, 0.5, 1],
+  })
+
+  headingLinkMap.forEach(({ heading }) => headingObserver?.observe(heading))
+  updateActiveHeading()
+  handleScroll()
+  return true
+}
+
+function hasTocOnPage() {
+  return document.getElementById('toc-container') !== null
+}
+
+function getTocContainer() {
+  return document.getElementById('toc-container')
+}
+
+function getPostContent() {
+  return document.getElementById('post-content')
+}
+
+function getTocBottomBoundary() {
+  return document.getElementById('site-navbar')
+    ?? document.getElementById('floating-actions')
+}
+
+function updateTocBottomGap() {
+  const tocContainer = getTocContainer()
+  if (!tocContainer) {
+    return
+  }
+
+  if (!isDesktop.matches) {
+    tocContainer.style.removeProperty('--toc-bottom-gap')
+    return
+  }
+
+  const boundaryElement = getTocBottomBoundary()
+  if (!boundaryElement) {
+    tocContainer.style.setProperty('--toc-bottom-gap', '2rem')
+    return
+  }
+
+  const boundaryRect = boundaryElement.getBoundingClientRect()
+  const bottomGap = Math.max(window.innerHeight - boundaryRect.top + 24, 32)
+  tocContainer.style.setProperty('--toc-bottom-gap', `${bottomGap}px`)
+}
+
+function queueSetup(attempt = 0) {
+  if (!hasTocOnPage()) {
+    return
+  }
+
+  if (setupTimer !== null) {
+    window.clearTimeout(setupTimer)
+  }
+
+  setupAttempt = attempt
+  setupTimer = window.setTimeout(() => {
+    setupTimer = null
+    cleanupAutoScroll()
+    setupAutoScroll()
+  }, 0)
+}
+
+function observeContentUntilReady() {
+  const postContent = getPostContent()
+  if (!postContent || hasRenderableHeadings()) {
+    return
+  }
+
+  contentObserver?.disconnect()
+  contentObserver = new MutationObserver(() => {
+    if (!hasRenderableHeadings()) {
+      return
+    }
+
+    contentObserver?.disconnect()
+    contentObserver = null
+    queueSetup()
+  })
+
+  contentObserver.observe(postContent, {
+    childList: true,
+    subtree: true,
+  })
+}
+
+// Initialize scroll listener
+function setupAutoScroll() {
+  if (!hasTocOnPage()) {
+    return
+  }
+
+  ticking = false
+  lastLink = null
+  activeLink = null
+  activeItem = null
+
+  updateTocBottomGap()
   document.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('hashchange', updateActiveHeading)
+  window.addEventListener('resize', updateTocBottomGap)
+
+  if (!observeHeadings() && setupAttempt < SETUP_RETRY_LIMIT) {
+    observeContentUntilReady()
+    queueSetup(setupAttempt + 1)
+  }
 }
 
 // Cleanup listener and reset state
 function cleanupAutoScroll() {
+  if (setupTimer !== null) {
+    window.clearTimeout(setupTimer)
+    setupTimer = null
+  }
+
   document.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('hashchange', updateActiveHeading)
+  window.removeEventListener('resize', updateTocBottomGap)
+  headingObserver?.disconnect()
+  headingObserver = null
+  contentObserver?.disconnect()
+  contentObserver = null
+  activeItem?.classList.remove('toc-item-active')
+  activeItem = null
+  activeLink?.classList.remove('toc-link-active')
+  activeLink?.removeAttribute('aria-current')
+  activeLink = null
   lastLink = null
 }
 
-document.addEventListener('astro:page-load', setupAutoScroll)
+queueSetup()
+document.addEventListener('astro:after-swap', () => queueSetup())
+document.addEventListener('astro:page-load', () => queueSetup())
 document.addEventListener('astro:before-swap', cleanupAutoScroll)
 </script>
