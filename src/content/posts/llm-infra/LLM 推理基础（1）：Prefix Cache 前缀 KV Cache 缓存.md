@@ -3,7 +3,8 @@ title: LLM 推理基础（1）：Prefix Cache
 published: 2026-04-11T09:21:04.373Z
 description: ""
 updated: ""
-tags: []
+tags:
+  - LLM-Infra
 draft: false
 pin: 0
 toc: true
