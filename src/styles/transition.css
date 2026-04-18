@@ -39,7 +39,7 @@ html[data-theme-changing] [data-disable-theme-toggle-transition] {
   }
 }
 
-@media (max-width: 1535px) {
+@media (max-width: 1023px) {
   #toc-container {
     opacity: 0;
     animation: fadeInUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
@@ -97,11 +97,15 @@ html[data-theme-changing] [data-disable-theme-toggle-transition] {
   }
 }
 
-@media (min-width: 1535px) {
-  #toc-desktop-icon {
+@media (min-width: 1024px) {
+  #toc-desktop-header {
     opacity: 0;
     animation: fadeInUpMini 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
     animation-delay: 0.175s;
+  }
+
+  #toc-desktop-icon {
+    animation: none;
   }
 
   #toc-links-list > * {
@@ -163,6 +167,7 @@ html.reduce-motion {
   #toc-container,
   #post-date,
   #post-content > *,
+  #toc-desktop-header,
   #toc-desktop-icon,
   #toc-links-list > *,
   #back-button {
