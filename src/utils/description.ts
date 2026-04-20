@@ -1,7 +1,8 @@
 import type { CollectionEntry } from 'astro:content'
 import type { Language } from '@/i18n/config'
+import katex from 'katex'
 import MarkdownIt from 'markdown-it'
-import { defaultLocale } from '@/config'
+import { defaultLocale, themeConfig } from '@/config'
 
 type ExcerptScene = 'list' | 'meta' | 'og' | 'feed'
 
@@ -32,6 +33,34 @@ const htmlEntityMap: Record<string, string> = {
   '&quot;': '"',
   '&apos;': '\'',
   '&nbsp;': ' ',
+}
+
+function renderMarkdownWithMath(text: string): string {
+  const mathSegments: string[] = []
+  const protectedText = text.replace(
+    /\$\$([\s\S]+?)\$\$|\$((?:\\.|[^$\n])+?)\$/g,
+    (match, displayMath: string | undefined, inlineMath: string | undefined) => {
+      if (!themeConfig.global.katex) {
+        return match
+      }
+
+      const expression = (displayMath ?? inlineMath ?? '').trim()
+      const html = katex.renderToString(expression, {
+        displayMode: Boolean(displayMath),
+        throwOnError: false,
+      })
+
+      const placeholder = `KATEXPLACEHOLDER${mathSegments.length}`
+      mathSegments.push(html)
+      return placeholder
+    },
+  )
+
+  const renderedHtml = markdownParser.renderInline(protectedText)
+  return mathSegments.reduce(
+    (html, segment, index) => html.replaceAll(`KATEXPLACEHOLDER${index}`, segment),
+    renderedHtml,
+  )
 }
 
 // Creates a clean text excerpt with length limits by language and scene
@@ -90,4 +119,11 @@ export function getPostDescription(
 
   const renderedContent = markdownParser.render(cleanContent)
   return getExcerpt(renderedContent, lang, scene)
+}
+
+// Renders description content for list previews while preserving inline markdown.
+export function renderPostDescriptionHtml(
+  post: CollectionEntry<'posts'>,
+): string {
+  return renderMarkdownWithMath(getPostDescription(post, 'list'))
 }

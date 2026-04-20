@@ -1,0 +1,236 @@
+{
+  "main": {
+    "id": "91518ad66b35d07f",
+    "type": "split",
+    "children": [
+      {
+        "id": "3d309e95aa772246",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0172126bd669e334",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "posts/llm-infra/Attention 模块优化 1：Flash Attention (FA-V1).md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Attention 模块优化 1：Flash Attention (FA-V1)"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "dc00171c48a8cd89",
+    "type": "split",
+    "children": [
+      {
+        "id": "f0109f59076cc500",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "54dcdb03858e0190",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "430eeb58fd62fac4",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "llm-infra-sampling",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "03ff039cd314d0e7",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 283.5
+  },
+  "right": {
+    "id": "a58d0c57e2ddd9c6",
+    "type": "split",
+    "children": [
+      {
+        "id": "cc73d7bd949d098e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "9ab594990a3ad24e",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "posts/llm/LLM 推理基础术语解释.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for LLM 推理基础术语解释"
+            }
+          },
+          {
+            "id": "21ac5c093d312513",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "83194fc7c95b8926",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "33404294e1c76b9d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "69ac3d3b906a5864",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "posts/llm-infra/大模型推理并行策略.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of 大模型推理并行策略"
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "table-editor-obsidian:Advanced Tables Toolbar": false
+    }
+  },
+  "active": "54dcdb03858e0190",
+  "lastOpenFiles": [
+    "posts/llm-infra/Attachments/FlashAttentionTiling.png",
+    "posts/llm-infra/Attention 模块优化 3：Flash Decoding (FA-V3).md",
+    "posts/llm-infra/Attention 模块优化 1：Flash Attention (FA-V1).md",
+    "posts/llm-infra/Chunked Prefill.md",
+    "posts/llm-infra/DeepSpeed Ulysses：Attention Block 的序列并行.md",
+    "posts/llm-infra/Attachments/ChunkedPrefillWorkflow.png",
+    "posts/llm-infra/Attachments/ChunkedPrefillProcess.png",
+    "posts/llm-infra/LLM 推理基础术语解释.md",
+    "posts/llm/LLM 推理 Sampling.md",
+    "posts/llm-infra/Sampling 采样.md",
+    "posts/llm/Attachments/TemperatureImpact2.png",
+    "posts/llm/Attachments/LLMLogits.png",
+    "posts/llm/Attachments/LLMGenerationParameters.png",
+    "posts/llm-infra/大模型推理并行策略.md",
+    "posts/llm-infra/LLM 推理基础（3）：并行优化手段 DP, SP, TP, PP.md",
+    "posts/llm/LLM 基础：Attention.md",
+    "posts/llm/Attachments/BeamSearchExample.png",
+    "posts/llm/Attachments/TemperatureImpact.png",
+    "posts/llm-infra/Prefix Cache：前缀 KV Cache 缓存.md",
+    "posts/llm-infra/vLLM v1 架构介绍.md",
+    "posts/llm/Attachments/mean-pooling-rnn.png",
+    "posts/llm-infra/Attachments/MHAvsDeepSpeed.png",
+    "posts/llm-infra/Attachments/Pasted image 20260419091021.png",
+    "posts/llm/MoE 模型基础.md",
+    "posts/parallelism/并行计算基础通信原语.md",
+    "posts/parallelism/矩阵乘法并行化.md",
+    "about/about-zh.md",
+    "posts/cuda/CUDA GEMM 优化.md",
+    "posts/llm-infra/Flash Attention v1.md",
+    "posts/llm-infra/Attachments/Continuous_Batching_Explained.pdf",
+    "posts/llm-infra/LLM 推理基础：矩阵乘法并行化.md",
+    "posts/llm/moe.md",
+    "posts/llm/LLM 推理基础术语解释.md",
+    "posts/llm/Attachments/Continuous_Batching_Explained.pdf",
+    "posts/llm-infra/LLM 推理基础 (1)：Prefix Cache 前缀 KV Cache 缓存.md",
+    "posts/llm-infra/LLM 推理基础 (2)：Sampling 采样.md",
+    "posts/cs-basics/C++ 基础（2）：STL Containers.md",
+    "posts/cs-basics/C++ 基础（1）：Types, Structs, Structured Bindings.md",
+    "posts/llm-infra/Attachments",
+    "posts/algos",
+    "posts/cs-basics/Attachments",
+    "posts/cs-basics",
+    "posts/rl/Attachments",
+    "posts/rl",
+    "posts/_images",
+    "posts/parallelism/Attachments"
+  ]
+}

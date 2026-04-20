@@ -4,7 +4,7 @@ import type { Post } from '@/types'
 import PinIcon from '@/assets/icons/pin-icon.svg'
 import PostDate from '@/components/PostDate.astro'
 import { getPostPath, getTagPath } from '@/i18n/path'
-import { getPostDescription } from '@/utils/description'
+import { renderPostDescriptionHtml } from '@/utils/description'
 import { isHomePage } from '@/utils/page'
 
 export interface Props {
@@ -53,22 +53,52 @@ const isHome = isHomePage(Astro.url.pathname)
 
         {/* mobile post time */}
         <div
-          class="py-0.8 text-3.5 font-time lg:hidden"
+          class="py-0.8 text-3.5 lg:hidden"
           transition:name={`time-${slug}${lang ? `-${lang}` : ''}`}
           data-disable-theme-toggle-transition
         >
-          <PostDate
-            date={post.data.published}
-            minutes={post.remarkPluginFrontmatter.minutes}
-          />
+          <div class="flex flex-wrap items-center gap-x-1.75 gap-y-0.75">
+            <span class="font-time">
+              <PostDate
+                date={post.data.published}
+                minutes={post.remarkPluginFrontmatter.minutes}
+              />
+            </span>
+            {isHome && post.data.tags?.length > 0 && (
+              <>
+                {post.data.tags.map(tag => (
+                  <a
+                    href={getTagPath(tag, lang)}
+                    class="c-secondary/60 transition-colors ease-out hover:c-primary"
+                  >
+                    #{tag}
+                  </a>
+                ))}
+              </>
+            )}
+          </div>
         </div>
 
         {/* desktop post time */}
-        <div class="hidden text-3.65 font-time lg:(ml-2.5 inline)">
-          <PostDate
-            date={post.data.published}
-            minutes={post.remarkPluginFrontmatter.minutes}
-          />
+        <div class="hidden text-3.65 lg:(ml-2.5 inline-flex flex-wrap items-center gap-x-1.75 gap-y-0.75)">
+          <span class="font-time">
+            <PostDate
+              date={post.data.published}
+              minutes={post.remarkPluginFrontmatter.minutes}
+            />
+          </span>
+          {isHome && post.data.tags?.length > 0 && (
+            <>
+              {post.data.tags.map(tag => (
+                <a
+                  href={getTagPath(tag, lang)}
+                  class="c-secondary/60 transition-colors ease-out hover:c-primary"
+                >
+                  #{tag}
+                </a>
+              ))}
+            </>
+          )}
         </div>
 
         {/* desktop post description */}
@@ -77,21 +107,7 @@ const isHome = isHomePage(Astro.url.pathname)
             class="heti hidden text-3.5 c-secondary/72"
             lg="mt-2.25 block"
           >
-            <p>{getPostDescription(post, 'list')}</p>
-          </div>
-        )}
-
-        {/* post tags */}
-        {isHome && post.data.tags?.length > 0 && (
-          <div class="mt-1.6 flex flex-wrap gap-x-2.5 gap-y-1 text-3.1 c-secondary/60 lg:mt-1.9">
-            {post.data.tags.map(tag => (
-              <a
-                href={getTagPath(tag, lang)}
-                class="transition-colors ease-out hover:c-primary"
-              >
-                #{tag}
-              </a>
-            ))}
+            <p set:html={renderPostDescriptionHtml(post)} />
           </div>
         )}
       </li>

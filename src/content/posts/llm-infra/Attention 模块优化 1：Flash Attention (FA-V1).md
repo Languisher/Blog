@@ -1,13 +1,8 @@
 ---
-title: Attention 模块优化 1：FlashAttention v1避免中间 attention 矩阵的显式存储
+title: Attention 模块优化 1：Flash Attention (FA-V1)
 published: 2026-03-04T18:11:44.306Z
-<<<<<<<< HEAD:src/content/posts/llm/Attention 模块优化 1：FlashAttention v1.md
-description: 本文介绍 FlashAttention 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造中间 attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
-updated: 2026-04-14T11:26:53.306Z
-========
 description: 本文介绍 FlashAttention 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
 updated: ""
->>>>>>>> 74f6430 (feat(blogs): add multiple blogs):src/content/posts/llm-infra/Flash Attention v1.md
 tags:
   - LLM-Infra
 draft: false
@@ -16,7 +11,11 @@ toc: true
 lang: zh
 abbrlink: flash-attention-v1
 ---
-本文介绍 FlashAttentionV1 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
+**FlashAttentionV1** 通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。具体而言：
+- 基于 Matrix Tiling 的思想，将 $\{K, V\}$ 和 $Q$ 向量分成小块，改成 for-loop 流式访问模式
+- 提出 online softmax 机制，通过在遍历过程中维护 **running max、归一化因子（denominator）以及输出累积值**，使 softmax 从依赖全局信息的操作转化为可流式计算，从而避免显式构造 $N \times N$ attention 矩阵
+
+> 参考论文：[FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)
 
 ![](Attachments/FlashAttentionvsStandardAttention.png)
 
@@ -37,7 +36,7 @@ $$
 - 这些中间结果需要在 HBM 中反复写入和读取，带来大量的数据搬运开销
 - 因此，Attention 的执行往往受限于**内存带宽（memory bandwidth）**，而非计算能力
 
-![](Attachments/截屏2026-04-14%2011.09.21.png)
+![FlashAttentionAlgo1](Attachments/FlashAttentionAlgo1.png)
 
 一个自然的优化思路是将上述三个步骤 **融合为一个 kernel（Fused Kernel）**，使得每个元素在加载后立即参与后续计算，从而避免中间矩阵的物化。然而，这种融合会面临两个主要挑战：
 - **Softmax 的归一化依赖**：如下图所示，
@@ -129,6 +128,8 @@ $$
 在 FlashAttention 中，因为需要对 $Q.K$ 以及 $f(Q.K).V$ 做 GEMM 运算，因此将 $Q$, $K$ 和 $V$ 矩阵都进行分块
 - 切分维度在 sequence dimension 上，即分别将 $Q$ 和 {$K$,$V$} 切分成形状为 $\mathbb{R}^{B_{r}\times d}$ 和 $\mathbb{R}^{B_{c} \times d}$ 的块。
 - 因此 $Q$  和 $\{K, V\}$ 被切分成 $T_{r} = \left\lceil  \frac{N}{B_{r}}  \right\rceil$ 和 $T_{c}= \left\lceil  \frac{N}{B_{c}}  \right\rceil$ 数量的小块。
+![](Attachments/FlashAttentionTiling.png)
+
 
 在计算中，
 - Outer loop 是 $K$ 和 $V$ 矩阵（对应上一小节的 $B$ 矩阵，按列切分）
@@ -239,7 +240,7 @@ $$
 - 每个 query 在扫描 $K$ 的过程中做 online softmax
 
 下图是 Flash Attention v1 原文的求解算法：
-![](Attachments/FlashAttentionAlgo1.png)
+![](../llm-infra/Attachments/FlashAttentionAlgo1.png)
 
 在进行矩阵分块计算的背景下，假设 outer loop index = $j$，inner loop index = $i$，输出矩阵是 $O$，且 $\{Q_{i}, O_{i}\} \in B_{r} \times d$，$\{K_{j}, V_{j}\} \in d \times B_{c}$，我们希望
 - 在不断的根据 tiling 计算结果之后更新 softmax 结果
