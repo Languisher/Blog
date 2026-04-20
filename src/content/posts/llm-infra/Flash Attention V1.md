@@ -2,7 +2,7 @@
 title: Flash Attention V1
 published: 2026-03-04T18:11:44.306Z
 description: 本文介绍 FlashAttention 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
-updated: ""
+updated: 2026-04-20T21:36:03Z
 tags:
   - LLM-Infra
 draft: false

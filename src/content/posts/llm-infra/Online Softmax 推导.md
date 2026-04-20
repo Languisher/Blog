@@ -97,7 +97,7 @@ $$
 
 这样 softmax 的计算只需要 **两次遍历向量** $x$，若若只算输入读取总的内存访问量约为 $2d$。
 
-## 自顶而上思路：拆分向量为多个子向量，分别计算中间状态 $(m,l)$ 并最终合并
+## Online Softmax 应用：拆分向量为多个子向量，分别计算中间状态并最终合并
 
 我们希望计算
 $$
@@ -202,6 +202,9 @@ $$
 \frac{e^{x_j-m}}{l}.}
 $$
 
+## 实际应用
+
+- [Online Softmax in FlashAttention](Flash%20Attention%20V1.md#Online%20Softmax%20in%20FlashAttention)
 ## 总结
 
 Softmax 的计算并不一定非要逐元素进行。  如果我们把输入向量拆分成多个子向量，再把每个子向量压缩为一个中间状态 $(m,l)$，那么整个 softmax 的分母就可以通过这些局部状态逐步合并得到。

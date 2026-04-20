@@ -32,6 +32,8 @@ abbrlink: llm-infra
 ## Attention 优化
 
 - FlashAttention v1/v2/v3/v4
+	- [Online Softmax 推导](Online%20Softmax%20推导.md)
+	- [Flash Attention V1](Flash%20Attention%20V1.md)
 - Flash Decoding
 - PagedAttention
 - Ring Attention

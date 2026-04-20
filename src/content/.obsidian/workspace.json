@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "posts/llm-infra/Flash Attention V1.md",
+                "file": "posts/llm-infra/LLM Infra 知识大纲.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Flash Attention V1"
+              "title": "LLM Infra 知识大纲"
             }
           }
         ]
@@ -53,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "llm-infra-sampling",
+                "query": "tag:Tag",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -186,17 +186,23 @@
   },
   "active": "0172126bd669e334",
   "lastOpenFiles": [
-    "posts/llm-infra/Attachments/FlashAttentionV1Deduction.png",
+    "posts/llm-infra/LLM Infra 推理框架.md",
+    "posts/llm-infra/LLM Infra 知识大纲.md",
+    "posts/vLLM/Nano vLLM Scheduler 解析.md",
+    "posts/vLLM/Attachments/Sequence.png",
+    "posts/vLLM/Attachments/LLMEngine.png",
+    "posts/vLLM/Attachments/Pasted image 20260420235146.png",
+    "posts/vLLM/Attachments",
+    "posts/vLLM",
+    "posts/llm-infra/Online Softmax 推导.md",
     "posts/llm-infra/Flash Attention V1.md",
+    "posts/llm-infra/Attachments/FlashAttentionV1Deduction.png",
     "posts/llm-infra/Attachments/FlashAttentionV1Deduction.png",
     "posts/llm-infra/Attachments/OnlineSoftmaxInFlashAttention.png",
     "现在我们放在 Attention 情况下，思想也是完全相同：更新最大值，再对分子分母进行放缩。在 Attention 计算中，- 每一行，对应一个 query 是一个独立 softmax- 每个 query 在扫描 $K$ 的过程中做 online softmax- 可以理解为同时对于多行，每一行是一个需要做 softmax 的向量（softmax 在列维度上做），不同行之间相互独立、互不干涉Untitled.md",
-    "posts/llm-infra/Online Softmax 推导.md",
     "posts/llm-infra/Attention 模块优化 3：Flash Decoding (FA-V3).md",
     "posts/llm-infra/vLLM v1 架构介绍.md",
     "posts/llm-infra/Prefix Cache：前缀 KV Cache 缓存.md",
-    "posts/llm-infra/LLM Infra 知识大纲.md",
-    "posts/llm-infra/LLM Infra 推理框架.md",
     "posts/llm-infra/Attachments/FlashAttentionTiling.png",
     "posts/llm-infra/Chunked Prefill.md",
     "posts/llm-infra/DeepSpeed Ulysses：Attention Block 的序列并行.md",
@@ -206,12 +212,9 @@
     "posts/llm/LLM 推理 Sampling.md",
     "posts/llm-infra/Sampling 采样.md",
     "posts/llm/Attachments/TemperatureImpact2.png",
-    "posts/llm/Attachments/LLMLogits.png",
-    "posts/llm/Attachments/LLMGenerationParameters.png",
     "posts/llm-infra/大模型推理并行策略.md",
     "posts/llm-infra/LLM 推理基础（3）：并行优化手段 DP, SP, TP, PP.md",
     "posts/llm/LLM 基础：Attention.md",
-    "posts/llm/Attachments/BeamSearchExample.png",
     "posts/llm/MoE 模型基础.md",
     "posts/parallelism/并行计算基础通信原语.md",
     "posts/parallelism/矩阵乘法并行化.md",
@@ -221,15 +224,12 @@
     "posts/llm-infra/Attachments/Continuous_Batching_Explained.pdf",
     "posts/llm-infra/LLM 推理基础：矩阵乘法并行化.md",
     "posts/llm/moe.md",
-    "posts/llm/LLM 推理基础术语解释.md",
     "posts/llm/Attachments/Continuous_Batching_Explained.pdf",
     "posts/llm-infra/Attachments",
     "posts/algos",
     "posts/cs-basics/Attachments",
     "posts/cs-basics",
     "posts/rl/Attachments",
-    "posts/rl",
-    "posts/_images",
-    "posts/parallelism/Attachments"
+    "posts/rl"
   ]
 }
