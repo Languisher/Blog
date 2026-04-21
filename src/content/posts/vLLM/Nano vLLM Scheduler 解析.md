@@ -113,3 +113,139 @@ class LLMEngine:
 ## 请求调度：Scheduler 类
 
 > 本小节对应 Nano vLLM 的 [`class Scheduler`](https://github.com/GeeeekExplorer/nano-vllm/blob/812eb1c1e434576c0b7ae64d2cefb937aa80399d/nanovllm/engine/scheduler.py#L8)，点击链接跳转。
+
+Scheduler 通过维护 
+
+```python
+self.waiting: deque[Sequence] = deque()
+self.running: deque[Sequence] = deque()
+```
+
+系统使用两个 deque 管理请求：
+- `waiting`：**所有还需要做 prefill 的请求**（包括：还没开始、chunked prefill 中、以及被抢占后需要继续 prefill 的）
+- `running`：已经完成 prefill、进入 decode 阶段的请求
+
+新请求统一加入 `waiting` 队尾。  
+在调度过程中，prefill 阶段通常按 FIFO 顺序从队首选择请求进行处理；但在 decode 阶段，`running` 队列更像一个活跃集合，其调度不严格遵循 FIFO，而是根据 batching 和完成情况动态更新。
+
+### 添加 Sequence 和判断终止条件函数
+
+下面观察源码是如何实现 `add()`, `is_finished()`.
+- `add()`，被上层 `LLMEngine.add_request()` 调用，加入 Scheduler waiting queue
+- `is_finished()` 当两个 deque 都空时返回 True
+
+```python
+class Scheduler:
+    def __init__(self, config: Config):
+        self.max_num_seqs = config.max_num_seqs
+        self.max_num_batched_tokens = config.max_num_batched_tokens
+        self.eos = config.eos
+        self.block_manager = BlockManager(config.num_kvcache_blocks, config.kvcache_block_size)
+        self.waiting: deque[Sequence] = deque()
+        self.running: deque[Sequence] = deque()
+
+    def is_finished(self):
+        return not self.waiting and not self.running
+
+    def add(self, seq: Sequence):
+        self.waiting.append(seq)
+```
+
+### 调度逻辑和后处理函数
+
+下图展示了 [`Scheduler.schedule()`](https://github.com/GeeeekExplorer/nano-vllm/blob/812eb1c1e434576c0b7ae64d2cefb937aa80399d/nanovllm/engine/scheduler.py#L24) 和 [`Schedule.postprocess()`](https://github.com/GeeeekExplorer/nano-vllm/blob/812eb1c1e434576c0b7ae64d2cefb937aa80399d/nanovllm/engine/scheduler.py#L71) 的核心逻辑。
+
+![](Attachments/Scheduler.schedule.png)
+
+Nano-vLLM Scheduler 的核心特性：
+- 阶段式调度（Phase-based）
+    - Prefill 和 Decode 不混跑
+    - 只有当 `waiting` 为空时才进入 Decode
+    - 这是为了避免 compute-bound 与 memory-bound workload 冲突
+- 资源约束调度：
+	- 单轮能跑的请求数量由 `self.max_num_seqs` 限制
+	- 单轮能跑的 token 数量由 `self.num_batched_tokens` 限制
+- Prefill 调度策略：
+	- 按照 `waiting` queue 顺序处理
+	- 对每个请求：
+		- 如果 token budget 足够则做完整 prefill
+		- 否则做 Chunked Prefill
+	- 限制只有一个请求能够触发 Chunked Prefill，剩下的则不允许
+- Decode 阶段策略：continuous batching
+
+`Scheduler.schedule()` 函数在每个 step 执行以下步骤：
+1. 首先判断是否有请求需要做 Prefill，这是通过检查 `waiting` queue 是否非空实现的。如果非空，则优先做 Prefill，进入 `# prefill` 之后的代码
+2. 然后再判断是否有请求需要做 Decode，通过检查 `decode` queue 实现，进入 `# decode` 之后的代码
+3. 输出本轮需要被执行 forward 的 sequences，以及这一轮是属于 Prefill 还是 Decode
+
+`schedule` 函数维护两个局部变量：
+- `scheduled_seqs` 即被选中调度的请求
+- `num_batched_tokens` 即需要被处理的被选中调度的请求 token 数量。
+
+
+在 Prefill 阶段，只要 `scheduled_seqs` 数量没有达到 Scheduler 限制则对于 `waiting` 队列列首的元素进行检查：
+（1-1）首先是比较 Sequence 需要处理的 `num_tokens`（注意不是完整的 token 数量！）和还剩下多少 token 预算可以被处理
+（1-2）有以下几种情况终止调度直接返回：
+- 没有 token 预算了
+- Block Manager 没有办法为这个请求分配完整的 KV Cache Block 了
+- 预算不够执行完整的 Prefill 且已经有请求执行 Chunked Prefill 了
+（1-3）在（1-2）之后，就确定当前选中的 Sequence 可以被成功调度。这里先分配 Sequence 的 KV Cache Block
+（1-4）
+
+```python
+class Scheduler:
+    def schedule(self) -> tuple[list[Sequence], bool]:
+        scheduled_seqs = []
+        num_batched_tokens = 0
+
+        # prefill
+        while self.waiting and len(scheduled_seqs) < self.max_num_seqs:
+            seq = self.waiting[0]
+            
+            # (1-1)
+            num_tokens = max(seq.num_tokens - seq.num_cached_tokens, 1)
+            remaining = self.max_num_batched_tokens - num_batched_tokens
+            
+            # (1-2)
+            if remaining == 0 or (not seq.block_table and not self.block_manager.can_allocate(seq)):    # no budget
+                break
+            if remaining < num_tokens and scheduled_seqs:    # only allow chunked prefill for the first seq
+                break
+                
+            # (1-3)
+            if not seq.block_table:
+                self.block_manager.allocate(seq)
+                
+            # (1-4)
+            seq.num_scheduled_tokens = min(num_tokens, remaining)
+            if seq.num_scheduled_tokens == num_tokens:
+                seq.status = SequenceStatus.RUNNING
+                self.waiting.popleft()
+                self.running.append(seq)
+            scheduled_seqs.append(seq)
+            num_batched_tokens += seq.num_scheduled_tokens
+        if scheduled_seqs:
+            return scheduled_seqs, True
+
+        # decode
+        while self.running and len(scheduled_seqs) < self.max_num_seqs:
+            seq = self.running.popleft()
+            while not self.block_manager.can_append(seq):
+                if self.running:
+                    self.preempt(self.running.pop())
+                else:
+                    self.preempt(seq)
+                    break
+            else:
+                seq.num_scheduled_tokens = 1
+                self.block_manager.may_append(seq)
+                scheduled_seqs.append(seq)
+        assert scheduled_seqs
+        self.running.extendleft(reversed(scheduled_seqs))
+        return scheduled_seqs, False
+
+    def preempt(self, seq: Sequence):
+        seq.status = SequenceStatus.WAITING
+        self.block_manager.deallocate(seq)
+        self.waiting.appendleft(seq)
+```
