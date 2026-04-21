@@ -1,10 +1,11 @@
 ---
-title: Flash Attention V1
+title: Flash Attention (FA1)
 published: 2026-03-04T18:11:44.306Z
 description: 本文介绍 FlashAttention 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
 updated: 2026-04-20T21:36:03Z
 tags:
   - LLM-Infra
+  - Attention
 draft: false
 pin: 0
 toc: true
@@ -218,11 +219,11 @@ $$
 $$
 
 
-对应的局部 softmax（仅用于推导，不显式计算）为：
-$$
-\tilde{\text{softmax}}_{ij}
-= \frac{\tilde{P}_{ij}}{\tilde{l}_{ij}}.
-$$
+> 对应的局部 softmax（仅用于推导，不显式计算）为：
+> $$
+> \tilde{\text{softmax}}_{ij}
+> = \frac{\tilde{P}_{ij}}{\tilde{l}_{ij}}.
+> $$
 
 
 **2. 更新 running max 和 normalizer**
@@ -245,19 +246,10 @@ $$
 
 **3. 当前 tile 的新贡献（numerator）**
 
-先计算当前 tile 的未归一化输出：
+计算当前 tile 的未归一化输出：
 $$
 \tilde{O}_{ij} = \tilde{P}_{ij} V_j \in \mathbb{R}^{B_r \times d}.
 $$
-
-然后对齐到新的数值尺度：
-$$
-\Delta_i
-=
-\operatorname{diag}\!\big(e^{\tilde{m}_{ij} - m_i^{\text{new}}}\big)\,
-\tilde{O}_{ij}.
-$$
-
 
 **4. 历史结果的重缩放**
 
@@ -266,24 +258,28 @@ $$
 N_i = \operatorname{diag}(l_i)\, O_i.
 $$
 
-将其从旧尺度 $m_i$ 重缩放到新尺度 $m_i^{\text{new}}$：
+**5. 合并 3+4 并归一化**
+
 $$
+\begin{cases}
+\Delta_i
+=
+\operatorname{diag}\!\big(e^{\tilde{m}_{ij} - m_i^{\text{new}}}\big)\,
+\tilde{O}_{ij}. \\
 \Phi_i
 =
 \operatorname{diag}\!\big(e^{m_i - m_i^{\text{new}}}\big)\,
 N_i
 =
-\operatorname{diag}\!\big(l_i\, e^{m_i - m_i^{\text{new}}}\big)\, O_i.
-$$
-**5. 合并并归一化**
-
-$$
-O_i^{\text{new}}
+\operatorname{diag}\!\big(l_i\, e^{m_i - m_i^{\text{new}}}\big)\, O_i. \\
+\boxed{O_i^{\text{new}}
 =
 \operatorname{diag}(l_i^{\text{new}})^{-1}
 \big(\Phi_i + \Delta_i\big)
-\in \mathbb{R}^{B_r \times d}.
+\in \mathbb{R}^{B_r \times d}.}
+\end{cases}
 $$
+
 
 等价写法为：
 $$
@@ -296,6 +292,62 @@ O_i^{\text{new}}
 e^{\tilde{m}_{ij}-m_i^{\text{new}}}\tilde{P}_{ij}V_j
 \right),
 $$
+
+### 总结
+
+在 Flash Attention V1 实现中，维护局部变量 $(m_{i},l_{i}, O_{i})$，对于每个 tilde 进行计算时将其进行更新。
+
+对于局部变量计算有（第一步）：
+$$
+\begin{cases}
+\tilde{m}_{ij} &= \operatorname{rowmax}(S_{ij}) \in \mathbb{R}^{B_r}, \\
+\tilde{P}_{ij} &= \exp\big(S_{ij} - \tilde{m}_{ij}\big)
+\in \mathbb{R}^{B_r \times B_c}, \\
+\tilde{l}_{ij} &= \operatorname{rowsum}(\tilde{P}_{ij})
+\in \mathbb{R}^{B_r}. \\
+\tilde{O}_{ij} &= \tilde{P}_{ij} V_j \in \mathbb{R}^{B_r \times d}.
+\end{cases}
+$$
+
+状态更新 $(m_{i},l_{i}) \to (m_{i}^\text{new}, l_{i}^\text{new})$ 式子（第二步）：
+$$
+\begin{cases}
+m_i^{\text{new}} &= \max(m_i, \tilde{m}_{ij}) \in \mathbb{R}^{B_r}, \\
+l_i^{\text{new}} &=
+l_i \odot e^{m_i - m_i^{\text{new}}}
++
+\tilde{l}_{ij} \odot e^{\tilde{m}_{ij} - m_i^{\text{new}}}
+\in \mathbb{R}^{B_r}.
+\end{cases}
+$$
+
+最终更新输出矩阵 $O_{i}\to O_{i}^\text{new}$（第三-五步）：
+
+$$
+\begin{cases}
+
+N_i = \operatorname{diag}(l_i)\, O_i. \\
+
+\Phi_i
+=
+\operatorname{diag}\!\big(e^{m_i - m_i^{\text{new}}}\big)\,
+N_i
+=
+\operatorname{diag}\!\big(l_i\, e^{m_i - m_i^{\text{new}}}\big)\, O_i. \\ 
+\Delta_i
+=
+\operatorname{diag}\!\big(e^{\tilde{m}_{ij} - m_i^{\text{new}}}\big)\,
+\tilde{O}_{ij}. \\  
+
+\boxed{O_i^{\text{new}}
+=
+\operatorname{diag}(l_i^{\text{new}})^{-1}
+\big(\Phi_i + \Delta_i\big)
+\in \mathbb{R}^{B_r \times d}.}
+\end{cases}
+$$
+
+Flash Attention V2 
 
 ## 参考资料
 

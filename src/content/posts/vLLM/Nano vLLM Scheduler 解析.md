@@ -1,8 +1,8 @@
 ---
 title: Nano vLLM Scheduler 解析
 published: 2026-04-20T21:47:40.646Z
-description: ""
-updated: ""
+description: 本文从 [Nano-vLLM](https://github.com/GeeeekExplorer/nano-vllm) 入手，解读如何从零实现一个轻量级的大模型请求调度器。
+updated: 2026-04-21T20:43:31Z
 tags:
   - vLLM
   - LLM-Infra
@@ -12,7 +12,7 @@ toc: true
 lang: ""
 abbrlink: nano-vllm-scheduler
 ---
-本文从 [Nano-vLLM](https://github.com/GeeeekExplorer/nano-vllm) 入手，解读一个轻量级的大模型请求 Scheduler 是如何做的。
+本文从 [Nano-vLLM](https://github.com/GeeeekExplorer/nano-vllm) 入手，解读如何从零实现一个轻量级的大模型请求调度器。
 
 ## 请求的基本单位：Sequence 类
 
@@ -34,13 +34,13 @@ abbrlink: nano-vllm-scheduler
 
 下面代码忽略了实现细节，只是为了表述整体流程。
 
-`LLMEngine.generate()` 一次性接受多个请求，并在一次 `generate()` 调用内部，通过反复调用 `step()` 推进所有请求直到完成（这里不是流式输入，而是一次性提交一批请求）：
+`LLMEngine.generate()` 通过 `add_request()` API 一次性接受多个请求。在一次调用内部，通过反复调用 `step()` 推进所有请求直到完成（这里不是流式输入，而是一次性提交一批请求）：
 1. 将输入请求
 	1. Tokenize
 	2. 封装成 Sequence 对象
 	3. 调用 `scheduler.add()` 加入 Scheduler waiting queue
 2. 当 Scheduler 仍有请求没有完成时（通过 `scheduler.is_finished()` API）
-	1. 持续调用 `self.step()` 。`step()` 每次推进一轮调度与执行，并返回这一轮产生的输出（将在后面解释）
+	1. 持续调用 `step()` 。`step()` 每次推进一轮调度与执行，并返回这一轮产生的输出（将在后面解释）
 	2. 将获得的输出添加到 `outputs` 中，等待所有请求完成后输出
 
 ```python
@@ -347,3 +347,9 @@ class Scheduler:
                 self.block_manager.deallocate(seq)
                 self.running.remove(seq)
 ```
+
+## 多个请求的逐 step 执行演化过程
+
+下图展示了三个请求从进入系统到完成生成的逐步执行过程。每一个 step 表示一次模型执行（forward）结束后的系统状态。
+
+![](Attachments/SchedulerSimulate.png)

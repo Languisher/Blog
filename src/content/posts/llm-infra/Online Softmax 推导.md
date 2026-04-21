@@ -204,7 +204,7 @@ $$
 
 ## 实际应用
 
-- [Online Softmax in FlashAttention](Flash%20Attention%20V1.md#Online%20Softmax%20in%20FlashAttention)
+- [Online Softmax in FlashAttention](Flash%20Attention%20(FA1).md#Online%20Softmax%20in%20FlashAttention)
 ## 总结
 
 Softmax 的计算并不一定非要逐元素进行。  如果我们把输入向量拆分成多个子向量，再把每个子向量压缩为一个中间状态 $(m,l)$，那么整个 softmax 的分母就可以通过这些局部状态逐步合并得到。
