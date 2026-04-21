@@ -6,7 +6,7 @@ updated: ""
 tags:
   - vLLM
   - LLM-Infra
-draft: true
+draft: false
 pin: 0
 toc: true
 lang: ""
@@ -17,6 +17,9 @@ abbrlink: nano-vllm-scheduler
 ## 请求的基本单位：Sequence 类
 
 > 本小节对应 Nano vLLM 的 [`class Sequence`](https://github.com/GeeeekExplorer/nano-vllm/blob/812eb1c1e434576c0b7ae64d2cefb937aa80399d/nanovllm/engine/sequence.py#L14)，点击链接跳转。
+
+
+在 Nano-vLLM 中，单个请求由 `Sequence` 类封装，在 LLMEngine 的各个部件之间传递。
 
 
 ![](Attachments/Sequence.png)
@@ -114,25 +117,6 @@ class LLMEngine:
 
 > 本小节对应 Nano vLLM 的 [`class Scheduler`](https://github.com/GeeeekExplorer/nano-vllm/blob/812eb1c1e434576c0b7ae64d2cefb937aa80399d/nanovllm/engine/scheduler.py#L8)，点击链接跳转。
 
-Scheduler 通过维护 
-
-```python
-self.waiting: deque[Sequence] = deque()
-self.running: deque[Sequence] = deque()
-```
-
-系统使用两个 deque 管理请求：
-- `waiting`：**所有还需要做 prefill 的请求**（包括：还没开始、chunked prefill 中、以及被抢占后需要继续 prefill 的）
-- `running`：已经完成 prefill、进入 decode 阶段的请求
-
-新请求统一加入 `waiting` 队尾。  
-在调度过程中，prefill 阶段通常按 FIFO 顺序从队首选择请求进行处理；但在 decode 阶段，`running` 队列更像一个活跃集合，其调度不严格遵循 FIFO，而是根据 batching 和完成情况动态更新。
-
-### 添加 Sequence 和判断终止条件函数
-
-下面观察源码是如何实现 `add()`, `is_finished()`.
-- `add()`，被上层 `LLMEngine.add_request()` 调用，加入 Scheduler waiting queue
-- `is_finished()` 当两个 deque 都空时返回 True
 
 ```python
 class Scheduler:
@@ -143,7 +127,28 @@ class Scheduler:
         self.block_manager = BlockManager(config.num_kvcache_blocks, config.kvcache_block_size)
         self.waiting: deque[Sequence] = deque()
         self.running: deque[Sequence] = deque()
+```
 
+Scheduler 主要使用两个 deque 管理请求：
+- `waiting`：**所有还需要做 prefill 的请求**（包括：还没开始、chunked prefill 中、以及被抢占后需要继续 prefill 的）
+- `running`：已经完成 prefill、进入 decode 阶段的请求
+
+新请求统一加入 `waiting` 队尾。  
+在调度过程中，prefill 阶段通常按 FIFO 顺序从队首选择请求进行处理；但在 decode 阶段，`running` 队列更像一个活跃集合，其调度不严格遵循 FIFO，而是根据 batching 和完成情况动态更新。
+
+
+同时，`Scheduler` 内部维护了一个 `BlockManager`，用于对系统中的 KV Cache Blocks 进行统一的逻辑管理。为了简化说明，这里仅通过其对外提供的 API 来理解其行为，具体实现细节可参考 [Nano vLLM BlockManager 解析](Nano%20vLLM%20BlockManager%20解析.md)。
+
+
+
+### 添加 Sequence 和判断终止条件函数
+
+下面观察源码是如何实现 `add()`, `is_finished()`.
+- `add()`，被上层 `LLMEngine.add_request()` 调用，加入 Scheduler waiting queue
+- `is_finished()` 当两个 deque 都空时返回 True
+
+```python
+class Scheduler:
     def is_finished(self):
         return not self.waiting and not self.running
 
@@ -156,6 +161,8 @@ class Scheduler:
 下图展示了 [`Scheduler.schedule()`](https://github.com/GeeeekExplorer/nano-vllm/blob/812eb1c1e434576c0b7ae64d2cefb937aa80399d/nanovllm/engine/scheduler.py#L24) 和 [`Schedule.postprocess()`](https://github.com/GeeeekExplorer/nano-vllm/blob/812eb1c1e434576c0b7ae64d2cefb937aa80399d/nanovllm/engine/scheduler.py#L71) 的核心逻辑。
 
 ![](Attachments/Scheduler.schedule.png)
+
+#### Scheduler 调度特性和核心 pipeline
 
 Nano-vLLM Scheduler 的核心特性：
 - 阶段式调度（Phase-based）
@@ -173,24 +180,18 @@ Nano-vLLM Scheduler 的核心特性：
 	- 限制只有一个请求能够触发 Chunked Prefill，剩下的则不允许
 - Decode 阶段策略：continuous batching
 
-`Scheduler.schedule()` 函数在每个 step 执行以下步骤：
-1. 首先判断是否有请求需要做 Prefill，这是通过检查 `waiting` queue 是否非空实现的。如果非空，则优先做 Prefill，进入 `# prefill` 之后的代码
-2. 然后再判断是否有请求需要做 Decode，通过检查 `decode` queue 实现，进入 `# decode` 之后的代码
-3. 输出本轮需要被执行 forward 的 sequences，以及这一轮是属于 Prefill 还是 Decode
+**`Scheduler.schedule()` 函数整体流程**：在每个 step 只会调度一种阶段：Prefill 或 Decode（二选一），执行流程如下：
+1. 优先尝试从 `waiting` queue 中调度 Prefill
+2. 如果本轮成功调度了至少一个 Prefill 请求，则**立即返回，进入 Prefill 阶段**
+3. 只有当本轮没有任何 Prefill 被调度成功时，才**进入 Decode 阶段**
+4. 返回：
+    - `scheduled_seqs`：本轮执行的请求
+    - `is_prefill`：是否为 Prefill 阶段
 
 `schedule` 函数维护两个局部变量：
-- `scheduled_seqs` 即被选中调度的请求
-- `num_batched_tokens` 即需要被处理的被选中调度的请求 token 数量。
+- `scheduled_seqs` 即本轮被选中调度的请求
+- `num_batched_tokens` 当前 batch（即当前轮所选中调度的请求）已经占用的 token 预算
 
-
-在 Prefill 阶段，只要 `scheduled_seqs` 数量没有达到 Scheduler 限制则对于 `waiting` 队列列首的元素进行检查：
-（1-1）首先是比较 Sequence 需要处理的 `num_tokens`（注意不是完整的 token 数量！）和还剩下多少 token 预算可以被处理
-（1-2）有以下几种情况终止调度直接返回：
-- 没有 token 预算了
-- Block Manager 没有办法为这个请求分配完整的 KV Cache Block 了
-- 预算不够执行完整的 Prefill 且已经有请求执行 Chunked Prefill 了
-（1-3）在（1-2）之后，就确定当前选中的 Sequence 可以被成功调度。这里先分配 Sequence 的 KV Cache Block
-（1-4）
 
 ```python
 class Scheduler:
@@ -224,18 +225,23 @@ class Scheduler:
                 self.running.append(seq)
             scheduled_seqs.append(seq)
             num_batched_tokens += seq.num_scheduled_tokens
+        
+        # 如果这轮成功调度了至少一个 prefill 请求则立即返回
         if scheduled_seqs:
             return scheduled_seqs, True
 
         # decode
         while self.running and len(scheduled_seqs) < self.max_num_seqs:
             seq = self.running.popleft()
+            
+            # (2-1)
             while not self.block_manager.can_append(seq):
                 if self.running:
                     self.preempt(self.running.pop())
                 else:
                     self.preempt(seq)
                     break
+            # （2-2）
             else:
                 seq.num_scheduled_tokens = 1
                 self.block_manager.may_append(seq)
@@ -248,4 +254,96 @@ class Scheduler:
         seq.status = SequenceStatus.WAITING
         self.block_manager.deallocate(seq)
         self.waiting.appendleft(seq)
+```
+
+
+#### Scheduler Prefill 阶段
+
+**在 Prefill 阶段**，只要 `waiting` queue 非空且 `scheduled_seqs` 数量没有达到 Scheduler 限制，就持续检查 `waiting` 队首请求（FIFO）。
+
+（1-1）首先计算当前请求本轮还需要处理的 token 数 `num_tokens`，以及当前 batch 剩余的 token 预算 `remaining`。这里的 `num_tokens` 不是该请求的完整 token 数，而是 **尚未完成 Prefill 的 token 数**。
+
+（1-2）有以下几种情况会终止 Prefill 调度：
+
+- 当前 batch 已经没有剩余 token 预算；
+- 当前请求还没有分配过 KV Cache，而 Block Manager 也无法为它分配初始的 KV Cache Block；
+- 当前请求无法完整执行 Prefill，且本轮 batch 中已经调度了其它请求。换句话说，**只有 batch 中的第一个请求允许做 chunked prefill**。
+
+经过（1-2）之后，就说明当前队首请求可以被成功调度。
+
+（1-3）如果该请求还没有 `block_table`，则先为其分配 KV Cache Block；如果它是之前已经开始过的 chunked prefill 请求，则不需要重复分配。
+
+（1-4）随后确定本轮实际调度的 token 数：
+
+- 若本轮只能执行部分 Prefill，则该请求继续保留在 `waiting` 队列中，下一轮仍然优先参与 Prefill；
+- 若本轮完成了全部剩余 Prefill，则将其状态设为 `RUNNING`，并将其从 `waiting` 队列移动到 `running` 队列；
+- 最后更新 `scheduled_seqs` 和 `num_batched_tokens`。
+
+如果这一轮成功调度了至少一个 Prefill 请求，则立即返回，不再进入 Decode 阶段。因此 Nano-vLLM 的这个 Scheduler **不会在同一轮中混合执行 Prefill 和 Decode**。
+
+#### Scheduler Decode 阶段
+
+**只有当这一轮没有任何 Prefill 请求被调度时**，Scheduler 才会进入 Decode 阶段。
+
+在 Decode 阶段，只要 `running` queue 非空且 `scheduled_seqs` 数量没有达到 Scheduler 限制，就持续从 `running` 队首取出请求尝试调度。
+
+（2-1）首先调用 `BlockManager.can_append()` 检查当前请求是否还能继续向 KV Cache 追加一个新 token。如果不能，则需要通过抢占释放空间：
+- 如果 `running` 队列中还有其它请求，则抢占队尾请求；
+- 被抢占的请求会释放已有的 KV Cache，并被重新放回 `waiting` 队列队首，状态也改回 `WAITING`；
+- 如果当前请求已经是最后一个可用请求，仍然无法 append，则连当前请求自己也会被抢占，并终止本轮 Decode 调度。
+
+（2-2）一旦确认当前请求可以成功 append，则将其本轮待处理 token 数设为 1，并调用 `BlockManager.may_append(seq)`，为该请求本轮追加的 1 个 token 预留或更新 KV Cache 的 block 状态（KV 的实际写入是在 ModelRunner 执行 forward 时完成）。然后把它加入本轮的 `scheduled_seqs`。
+
+在 Decode 调度结束后，这些成功调度的请求会按原顺序重新放回 `running` 队列前部，从而继续参与之后的 Decode step。如果有请求达到了终止条件需要退出 Decode，由 Scheduler 后处理阶段将其移出 `running` queue 并更改其状态为 `FINISHED`.
+
+
+#### Scheduler 后处理
+
+
+在 `ModelRunner` 完成一轮推理之后，会返回 `seqs` 中每个 sequence 对应的一个 `token_id`。  
+但这个 `token_id` 不一定都会被作为正式输出拼接回 `seq` 中：在 Chunked Prefill 的中间阶段，返回的 `token_id` 只是一轮前向计算的副产物，并不表示该请求已经完成了基于完整上下文的下一 token 生成，因此不会被写回 sequence（详见 [Chunked Prefill](../llm-infra/Chunked%20Prefill.md)）。
+
+`Scheduler.postprocess()` 的主要作用，是根据本轮执行结果更新每个 sequence 的状态。对于每一组 `(seq, token_id)`，其逻辑大致如下：
+1. 如果当前是 Prefill 阶段，则先更新 `seq.num_cached_tokens`，表示本轮有多少输入 token 已经被写入 KV Cache
+2. 如果当前仍处于 Chunked Prefill 的中间阶段，或者该请求是被抢占后重新执行 Prefill，则本轮返回的 `token_id` 不会被当作正式生成结果拼接到 `seq` 中；此时只需清空 `seq.num_scheduled_tokens` 并继续处理下一个请求
+3. 否则，说明该请求在本轮确实生成了一个有效的新 token，于是：
+   - 调用 `seq.append_token(token_id)` 将其拼接到 sequence 中
+   - 更新 `seq.num_cached_tokens += 1`，表示生成了一个新的 output token
+   - 将 `seq.num_scheduled_tokens` 清零
+4. 检查该请求是否满足终止条件，例如：
+   - 新生成的 token 是 `eos`
+   - 已达到最大生成长度 `max_tokens`
+5. 如果请求结束，则：
+   - 将其状态标记为 `FINISHED`
+   - 释放其占用的 KV Cache blocks
+   - 将其从 `running` queue 中移除
+
+**解释：Prefill 分支的 `num_cached_tokens` 分成两次更新**：
+- **先加** **`seq.num_scheduled_tokens`**：表示这轮前向计算中，多少个**已有输入 token** 被处理并写入了 KV cache
+- **若本轮恰好完成 Prefill 并生成首个有效 output token，则额外 +1**，因为该 token 也已写入 KV cache。
+
+**解释：`running` queue 不是按顺序（FIFO）弹出请求的**。这很容易理解，因为所有 Sequence 的终止条件有可能不同，有的请求可能提前生成 `eos` 字符退出推理。
+
+```python
+class Scheduler:
+    def postprocess(self, seqs: list[Sequence], token_ids: list[int], is_prefill: bool):
+        for seq, token_id in zip(seqs, token_ids):
+	        # (1)
+            if is_prefill:
+                seq.num_cached_tokens = min(seq.num_cached_tokens + seq.num_scheduled_tokens, seq.num_tokens)
+                # (2)
+                if seq.num_cached_tokens < seq.num_tokens or seq.num_completion_tokens > 0:    # chunked prefill or re prefill after preemption
+                    seq.num_scheduled_tokens = 0
+                    continue
+                    
+	        # (3)
+            seq.append_token(token_id)
+            seq.num_cached_tokens += 1
+            seq.num_scheduled_tokens = 0
+            # (4)
+            if (not seq.ignore_eos and token_id == self.eos) or seq.num_completion_tokens == seq.max_tokens:
+	            # (5)
+                seq.status = SequenceStatus.FINISHED
+                self.block_manager.deallocate(seq)
+                self.running.remove(seq)
 ```
