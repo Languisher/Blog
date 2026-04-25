@@ -2,10 +2,9 @@
 title: C++ 基础（2）：STL Containers
 published: 2026-04-18T08:36:17.329Z
 description: 本文首先介绍了 C++ STL 常用的容器，分别介绍了对应 Python 中的 `list()`, `dict()` 的容器，并且对于各容器的优缺点进行了总结；然后介绍了遍历容器的迭代器 Iterator，最后略微提及了可以指向所有类型的指针。
-updated: ""
+updated: 2026-04-24T20:00:04Z
 tags:
   - CPP
-  - CS-Basics
 draft: false
 pin: 0
 toc: true
@@ -17,6 +16,7 @@ abbrlink: cpp-2
 - 关联容器（dict）：`std::map/std::set`, `std::unordered_map/std::unordered_set`
 - Iterator
 
+本文仅是对于相关容器的介绍，具体一图流 API 整理在 [C++ 常用 API 一图流](C++%20常用%20API%20一图流.md).
 ## Containers
 ### Sequence containers
 

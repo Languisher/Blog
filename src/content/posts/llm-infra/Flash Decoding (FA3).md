@@ -1,5 +1,5 @@
 ---
-title: Flash Decoding (Flash Attention V3)
+title: Flash Decoding (FA3)
 published: 2026-04-19T14:49:36.954Z
 description: |-
   FlashAttention 在训练阶段可以借助 batch 和 sequence length 提供充足的并行度，从而高效利用 GPU；但在 decode 阶段，每一步仅涉及单个 query，导致可并行的计算任务数量有限，从而难以填满 GPU，单 step 的 SM 利用率较低。
@@ -19,7 +19,7 @@ Flash Decoding（FlashAttention V3）利用 online softmax 中间状态 $(m,l,O)
 
 ## Flash Attention 在 LLM 推理阶段遇到的问题
 
-在 [Flash Attention (FA1)](Flash%20Attention%20(FA1).md) 文章中我们推导了 Flash Attention 计算方式。具体而言，为了计算：
+在 [Flash Attention (FA1)](Flash%20Attention%20(FA1).md) 和 [Flash Attention 2 (FA2)](Flash%20Attention%202%20(FA2).md) 文章中我们推导了 Flash Attention 计算方式。具体而言，为了计算：
 $$
 O = \text{softmax}\left( \frac{QK^T}{\sqrt{ d }} \right).V, \quad \mathrm{softmax}(x)_i = \frac{e^{x_i}}{\sum_j e^{x_j}}
 $$
@@ -39,7 +39,7 @@ O^{(1)}\to O^{(2)} \to \dots \to O^{(k)} \to \text{output}
 $$
 
 
-下图展示了这个过程：![](https://crfm.stanford.edu/static/img/posts/2023-10-13-flashdecoding/parallelization.gif)
+下图展示了以 $Q$ 为外循环，以 $\{K, V\}$ 为内循环的计算过程：![](https://crfm.stanford.edu/static/img/posts/2023-10-13-flashdecoding/parallelization.gif)
 
 在推理（decode）阶段，每一步仅计算一个新的 query（即 $Q \in \mathbb{R}^{1 \times d}$），导致 FlashAttention 的两个关键并行维度受到限制：
 1. **Query 维度并行性消失**：无法通过 batch 或 sequence length 提供足够的并行度来填满 GPU
