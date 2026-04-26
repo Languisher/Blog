@@ -25,9 +25,7 @@ abbrlink: llm-infra-sampling
 - 给定一个词表 tokens = `[Yes, No, <EoS>]`，模型输出对应的 logits 为 `[2.0, 1.0, 0.1]`。这些 logits 表示模型对每个 token 的“偏好强度”，数值越大，表示越倾向于选择该 token。
 - 接着，对 logits 进行 softmax 变换，将其转化为概率分布，得到约 `[0.65, 0.24, 0.11]`。此时，每个值可以被解释为对应 token 被选中的概率。如果采用 greedy strategy（贪心策略），即始终选择概率最大的 token，那么最终会选择概率最高的 Yes。
 
-
 ![](Attachments/LLMLogits.png)
-
 
 ## 采样策略
 
@@ -113,7 +111,6 @@ $$
 2. 对当前的 $k$ 个候选序列分别进行扩展，每个序列生成其 top-$k$ 个下一步候选，并计算对应的累积得分（如对数概率之和）；
 3. 在所有 $k \times k$ 个扩展候选中，选取得分最高的 $k$ 个作为新的候选集合；
 4. 重复步骤 2、3，直到所有候选序列生成结束符（EOS）或达到最大长度；
-
 
 下图展示了 $K=2$ 的 Beam Search 的例子。
 - Step 1：选择 Top-2 token “吃”、“爱”

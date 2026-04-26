@@ -25,7 +25,7 @@ Types of streams.
 ![](Attachments/stream_types.png)
 Stream inheritance diagram
 
-##  I/O stream 
+##  I/O stream
 
 ![](Attachments/stream_io-1.png)
 Input streams and output streams
@@ -34,7 +34,7 @@ Examples. See next two sections.
 
 ## Stringstream
 
-`std::stringstream` treat strings as streams, and are useful for use-cases that deal with _mixing data types_. 
+`std::stringstream` treat strings as streams, and are useful for use-cases that deal with _mixing data types_.
 
 It is _both an input stream and an output stream_.
 
@@ -53,9 +53,8 @@ std::string first, last, language, extracted_quote;
 
 **Extraction**.
 - `>>` operator reads until _the next whitespace_.
-- Skips the leading whitespace 
+- Skips the leading whitespace
 - The terminated whitespace _is left in the stream_.
-
 
 ![](Attachments/sstream_exetraction.png)
 Illustration of sstream extraction.
@@ -96,7 +95,6 @@ ss >> std::ws; // Add this line to consume the ' '
 std::getline(ss, extracted_quote);
 ```
 
-
 ## Output stream
 
 A way to write data to a destination/external source
@@ -112,7 +110,7 @@ Contents in buffer not shown on external source until an explicit flush occurs!
 ![](Attachments/stream_flush-1.png)
 Illustration of stream flushing
 
-Flushing occurs if 
+Flushing occurs if
 - the stream's buffer needs to be synchronized with its destination, e.g. the intermediate buffer is full
 - or flushing is explicitly requested, such as calling `std::flush` or `std::endl`
 
@@ -122,7 +120,6 @@ Tip.
 Use `\n` instead of `std::endl` to avoid unnecessary flushing.
 
 ### Output file stream
-
 
 Output file streams have a type: `std::ofstream`. A way to write data to a file!
 

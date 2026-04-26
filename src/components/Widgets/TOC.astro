@@ -2,8 +2,8 @@
 import type { MarkdownHeading } from 'astro'
 import TocIcon from '@/assets/icons/toc-icon.svg'
 import { ui } from '@/i18n/ui'
-import { getPageInfo } from '@/utils/page'
 import { attachHeadingNumbers } from '@/utils/heading-numbering.mjs'
+import { getPageInfo } from '@/utils/page'
 
 interface Props {
   headings: MarkdownHeading[]
@@ -37,7 +37,7 @@ const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth:
   // TOC Container
   <div
     id="toc-container"
-    class="mb-6 uno-round-border bg-secondary/5 lg:(fixed right-[max(5rem,calc(50vw-35rem))] top-46 bottom-[var(--toc-bottom-gap,2rem)] mb-0 w-14rem border-none bg-secondary/0 overflow-hidden flex flex-col)"
+    class="mb-6 uno-round-border bg-secondary/5 lg:(fixed bottom-[var(--toc-bottom-gap,2rem)] right-[max(5rem,calc(50vw-35rem))] top-46 mb-0 w-14rem flex flex-col overflow-hidden border-none bg-secondary/0)"
   >
     {/* Hidden Checkbox */}
     <input
@@ -49,7 +49,7 @@ const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth:
     <div class="relative h-12 w-full lg:h-auto">
       <label
         for="toc-toggle"
-        class="absolute inset-0 flex cursor-pointer items-center lg:(static cursor-default flex-col items-start gap-2 c-secondary/60)"
+        class="absolute inset-0 flex cursor-pointer items-center lg:(static flex-col cursor-default items-start gap-2 c-secondary/60)"
       >
         {/* Title on Mobile */}
         <span id="toc-mobile-text">

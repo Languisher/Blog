@@ -1,52 +1,20 @@
 ---
-import type { Language } from '@/i18n/config'
-import LanguageSwitcherIcon from '@/assets/icons/language-switcher.svg'
 import ThemeToggleIcon from '@/assets/icons/theme-toggle.svg'
-import { moreLocales, themeConfig } from '@/config'
-import { getNextGlobalLangPath, getNextSupportedLangPath } from '@/i18n/path'
-
-interface Props {
-  supportedLangs: Language[]
-}
+import { themeConfig } from '@/config'
 
 const {
   light: { background: lightMode },
   dark: { background: darkMode },
 } = themeConfig.color
-
-const { supportedLangs } = Astro.props
-const currentPath = Astro.url.pathname
-
-// Check if there are other languages to switch
-const showLanguageSwitcher = moreLocales.length > 0
-// Choose a language switch list according to supported languages
-const nextUrl = supportedLangs.length > 0
-  ? getNextSupportedLangPath(currentPath, supportedLangs) // Use supported languages when available
-  : getNextGlobalLangPath(currentPath) // Fallback to all languages when no supported languages data
 ---
 
 <div
   id="floating-actions"
   class:list={[
-  'absolute right-7.25vw top-14.6 flex gap-6 min-[823px]:max-lg:right-[calc(50vw-22rem)]',
+  'absolute right-7.25vw top-14.6 flex min-[823px]:max-lg:right-[calc(50vw-22rem)]',
   'lg:(fixed bottom-[min(10.27rem+1.92vw,12rem)] right-[max(5rem,calc(50vw-35rem))] top-auto w-14rem)',
 ]}
 >
-  <!-- Language Switcher -->
-  {showLanguageSwitcher && (
-    <a
-      id="language-switcher"
-      href={nextUrl}
-      class="aspect-square w-4 c-secondary active:scale-90 hover:c-primary"
-      aria-label="Switch website language"
-    >
-      <LanguageSwitcherIcon
-        aria-hidden="true"
-        fill="currentColor"
-      />
-    </a>
-  )}
-
   <!-- Theme Toggle -->
   <button
     id="theme-toggle-button"

@@ -30,7 +30,6 @@ abbrlink: nano-vllm-scheduler
 
 > 本小节对应 Nano vLLM 的 [`class Scheduler`](https://github.com/GeeeekExplorer/nano-vllm/blob/812eb1c1e434576c0b7ae64d2cefb937aa80399d/nanovllm/engine/scheduler.py#L8)，点击链接跳转。
 
-
 ```python
 class Scheduler:
     def __init__(self, config: Config):
@@ -46,13 +45,10 @@ Scheduler 主要使用两个 deque 管理请求：
 - `waiting`：**所有还需要做 prefill 的请求**（包括：还没开始、chunked prefill 中、以及被抢占后需要继续 prefill 的）
 - `running`：已经完成 prefill、进入 decode 阶段的请求
 
-新请求统一加入 `waiting` 队尾。  
+新请求统一加入 `waiting` 队尾。
 在调度过程中，prefill 阶段通常按 FIFO 顺序从队首选择请求进行处理；但在 decode 阶段，`running` 队列更像一个活跃集合，其调度不严格遵循 FIFO，而是根据 batching 和完成情况动态更新。
 
-
 同时，`Scheduler` 内部维护了一个 `BlockManager`，用于对系统中的 KV Cache Blocks 进行统一的逻辑管理。为了简化说明，这里仅通过其对外提供的 API 来理解其行为，具体实现细节可参考 [Nano vLLM 解读（4）：解析 BlockManager](Nano%20vLLM%20解读（4）：解析%20BlockManager.md)。
-
-
 
 ### 添加 Sequence 和判断终止条件函数
 
@@ -105,7 +101,6 @@ Nano-vLLM Scheduler 的核心特性：
 - `scheduled_seqs` 即本轮被选中调度的请求
 - `num_batched_tokens` 当前 batch（即当前轮所选中调度的请求）已经占用的 token 预算
 
-
 ```python
 class Scheduler:
     def schedule(self) -> tuple[list[Sequence], bool]:
@@ -115,21 +110,21 @@ class Scheduler:
         # prefill
         while self.waiting and len(scheduled_seqs) < self.max_num_seqs:
             seq = self.waiting[0]
-            
+
             # (1-1)
             num_tokens = max(seq.num_tokens - seq.num_cached_tokens, 1)
             remaining = self.max_num_batched_tokens - num_batched_tokens
-            
+
             # (1-2)
             if remaining == 0 or (not seq.block_table and not self.block_manager.can_allocate(seq)):    # no budget
                 break
             if remaining < num_tokens and scheduled_seqs:    # only allow chunked prefill for the first seq
                 break
-                
+
             # (1-3)
             if not seq.block_table:
                 self.block_manager.allocate(seq)
-                
+
             # (1-4)
             seq.num_scheduled_tokens = min(num_tokens, remaining)
             if seq.num_scheduled_tokens == num_tokens:
@@ -138,7 +133,7 @@ class Scheduler:
                 self.running.append(seq)
             scheduled_seqs.append(seq)
             num_batched_tokens += seq.num_scheduled_tokens
-        
+
         # 如果这轮成功调度了至少一个 prefill 请求则立即返回
         if scheduled_seqs:
             return scheduled_seqs, True
@@ -146,7 +141,7 @@ class Scheduler:
         # decode
         while self.running and len(scheduled_seqs) < self.max_num_seqs:
             seq = self.running.popleft()
-            
+
             # (2-1)
             while not self.block_manager.can_append(seq):
                 if self.running:
@@ -168,7 +163,6 @@ class Scheduler:
         self.block_manager.deallocate(seq)
         self.waiting.appendleft(seq)
 ```
-
 
 #### Scheduler Prefill 阶段
 
@@ -209,11 +203,9 @@ class Scheduler:
 
 在 Decode 调度结束后，这些成功调度的请求会按原顺序重新放回 `running` 队列前部，从而继续参与之后的 Decode step。如果有请求达到了终止条件需要退出 Decode，由 Scheduler 后处理阶段将其移出 `running` queue 并更改其状态为 `FINISHED`.
 
-
 #### Scheduler 后处理
 
-
-在 `ModelRunner` 完成一轮推理之后，会返回 `seqs` 中每个 sequence 对应的一个 `token_id`。  
+在 `ModelRunner` 完成一轮推理之后，会返回 `seqs` 中每个 sequence 对应的一个 `token_id`。
 但这个 `token_id` 不一定都会被作为正式输出拼接回 `seq` 中：在 Chunked Prefill 的中间阶段，返回的 `token_id` 只是一轮前向计算的副产物，并不表示该请求已经完成了基于完整上下文的下一 token 生成，因此不会被写回 sequence（详见 [Chunked Prefill](../llm-infra/Chunked%20Prefill.md)）。
 
 `Scheduler.postprocess()` 的主要作用，是根据本轮执行结果更新每个 sequence 的状态。对于每一组 `(seq, token_id)`，其逻辑大致如下：
@@ -248,7 +240,7 @@ class Scheduler:
                 if seq.num_cached_tokens < seq.num_tokens or seq.num_completion_tokens > 0:    # chunked prefill or re prefill after preemption
                     seq.num_scheduled_tokens = 0
                     continue
-                    
+
 	        # (3)
             seq.append_token(token_id)
             seq.num_cached_tokens += 1

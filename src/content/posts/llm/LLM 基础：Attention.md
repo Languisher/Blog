@@ -26,7 +26,7 @@ $$
 w_i \in \{0,1\}^{|\mathcal{V}|}.
 $$
 
-我们将字典中的每一个元素映射为在 $\mathbb{R}^d$ 中的高维向量。由于需要对字典的每一个元素都建立映射规则，因此定义对应的 embedding matrix 
+我们将字典中的每一个元素映射为在 $\mathbb{R}^d$ 中的高维向量。由于需要对字典的每一个元素都建立映射规则，因此定义对应的 embedding matrix
 
 $$
 E \in \mathbb{R}^{d \times |\mathcal{V}|}
@@ -40,7 +40,6 @@ $$
 这里我们得到的是对于每个 $w_{i}$，其对应的 non-contextual embedding $x_{i} \in \mathbb{R}^d$. 在此基础上，我们通常通过一个序列建模结构（例如 RNN 或 Transformer），结合上下文信息计算每个 token 的 contextual embedding $h_i \in \mathbb{R}^d$.
 
 在自回归模型中，$h_i$ 仅依赖于该 token 之前的 tokens。
-
 
 ### Sentence Encoding：平均池化
 
@@ -73,7 +72,6 @@ $$
 而在 **Attention** 中：
 - **query** 会对所有 **key** 进行“匹配”，得到一组介于 0 和 1 之间的权重。 这个权重值由 query 和 key 的值决定。
 - 每个 key 对应的 **value** 会乘以对应权重，然后进行加权求和
-
 
 ![](Attachments/attention-illu.png)
 
@@ -126,7 +124,6 @@ $$
 $$
 \text{Attention}: (Q, K, V) \mapsto \text{softmax}(Q K^T)V
 $$
-
 
 **Self-Attention（自注意力）** 是一种特殊情况，其中 $Q, K, V$ 都来自同一个输入序列。给定输入序列表示 $X$：
 $$
@@ -266,8 +263,6 @@ RoPE 在不同子空间使用不同频率进行旋转：
 
 ![](Attachments/rope_rotation.png)
 
-
-
 将位置编码为高维“相位向量”，使得在所有频率上同时冲突的概率极低。
 
 ### 数学形式
@@ -317,7 +312,6 @@ $$
 
 ![](Attachments/attention_nonlinear.png)
 
-
 ## 未来信息屏蔽 Masking
 
 在自回归建模中：
@@ -336,7 +330,6 @@ $$
 \end{cases}
 $$
 ![](Attachments/attention_futuremasking.png)
-
 
 ## 总结
 

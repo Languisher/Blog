@@ -19,13 +19,11 @@ abbrlink: llm-infra-prefix-cache
 - **避免重复构建相同前缀的 KV Cache**，从而降低系统的 KV Cache 内存占用；
 - **避免对相同前缀重复执行 prefill 计算**，从而减少计算开销并降低请求延迟。
 
-
 如下图所示，
 - Request 2 可以复用 Request 1 的第一个 token 的 KV Cache，
-- Request 3 可以服用 Request 1 的第一和第二个 token 的 KV Cache. 
+- Request 3 可以服用 Request 1 的第一和第二个 token 的 KV Cache.
 - Request 3 的 Token 5-7 不能复用 Request 2 的对应 token 的 KV Cache 是因为两个请求的前缀不同，因此对应的 KV Cache 自然也不同。
 ![](Attachments/PrefixCache.png)
-
 
 为了实现 Prefix cache 机制，我们需要考虑以下几个问题：
 - **前缀匹配搜索**。对于新请求的 prompt，对于新请求的 prompt，系统需要高效地在已有的历史前缀缓存中查找可匹配的前缀，并定位可以直接复用的 KV Cache blocks。

@@ -1,25 +1,37 @@
 ---
-title: CUDA 寻址
+title: CUDA Grid, Block, Thread 和寻址
 published: 2026-03-04T14:45:48.564Z
-description: ""
-updated: ""
-tags: [CUDA]
+description: 本文从数据并行计算的角度出发，介绍 CUDA 中 Grid、Block 和 Thread 的分层组织方式，并解释如何通过线程索引将计算任务映射到具体数据。
+updated: 2026-04-26T10:18:01Z
+tags:
+  - CUDA
 draft: false
 pin: 0
 toc: true
 lang: ""
 abbrlink: cuda-indexing
 ---
-本文简单介绍了在 CUDA 环境下 Grid, Block 和 Thread 的概念，以及如何寻找它们的地址。
+本文从数据并行计算的角度出发，介绍 CUDA 中 Grid、Block 和 Thread 的分层组织方式，并解释如何通过线程索引将计算任务映射到具体数据。
 
 ## 关键概念
 
+CUDA 的思想是：把一个数据并行的大任务拆成大量小任务，让 GPU 上的执行单元并行处理，类似 SIMD。一次 CUDA kernel launch 会产生一个 grid，grid 由多个 block 组成，block 由多个 thread 组成。
+- **Grid**：一次 kernel launch 对应的整体执行任务
+- **Block**：grid 的分块，是被调度到 SM 上执行的基本单位
+- **Thread**：程序员视角下的最小执行单位，每个 thread 通常负责一小部分数据
+
+在 kernel 内部，每个 thread 可以通过其坐标计算自己在整个 grid 中的全局坐标，从而确定自己负责处理哪一段数据。
+
+下图展示了一个二维 grid，每个 block 内又包含二维 thread 结构：
 
 ![](Attachments/CUDAIndexing.png)
 
-**CUDA Kernel** 是一个用 `__global__` 声明的函数，它在 GPU (device) 上执行，由 CPU (host) 发起调用。
+**CUDA Kernel** 是一个用 `__global__` 声明的函数。
+- 它在 GPU (device) 上执行，由 CPU (host) 发起调用。
+- 执行指定操作，例如执行 GEMM 操作或者 vector_add 等等
 
 ```cpp
+// definition
 __global__ void myKernel() {
 	...
 }
@@ -32,7 +44,7 @@ mykernel<<<gridDim, blockDim>>>();
 
 **Grid**. 当 Host 启动一个 kernel 时，CUDA runtime 会在 Device 上创建一个 **grid**。
 - 一个 grid 是由多个 thread blocks 组成的集合。
-- 每一次 kernel launch 会生成一个 grid，因此 kernel launch 与 grid 之间是一一对应的关系。
+- 每一次 kernel launch 会生成一个 grid，Kernel launch 与 grid 之间是一一对应的关系。
 - 不同的 kernel launch 可以使用不同的 grid 维度和 block 维度。
 - `gridDim.{x,y,z}` 表示 Grid 的 shape
 
@@ -44,6 +56,9 @@ mykernel<<<gridDim, blockDim>>>();
 
 **Thread**. 实际执行的最小 (software) execution unit.
 - 使用 `threadIdx.{x,y,z}` 表示当前 thread 在 block 中的索引
+- **每一个 block 最多只能有 1024 个 threads**. 线程可以按 1D/2D/3D 方式组织（如 (16,16)、(32,8)），但本质限制是线程总数，且通常选择 32 的倍数以匹配 warp 执行。[^1]
+
+[^1]: https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities
 
 Grid 和 Block 都可以是三维的，如下图所示：
 ![](Attachments/CUDAIndexing3D.png)
@@ -79,17 +94,14 @@ $$
 
 ![](Attachments/2DGrid1DBlock.png)
 
-
 2D Grid + 1D Block 情况：总共有 $(\text{gridDim}.x \times \text{gridDim}.y) \times \text{blockDim}.x$ 个 thread，
 $$
 \text{blockId} := (\text{blockIdx}.y \times \text{gridDim}.x) + \text{blockIdx}.x
 $$
-因此 
+因此
 $$
 \text{threadId} = \text{blockId} \times \text{blockDim}.x + \text{threadIdx}.x
 $$
-
-
 
 ![](Attachments/2DGrid2DBlock.png)
 
@@ -101,7 +113,6 @@ $$
 $$
 \text{threadId} = \text{blockId} \times \text{blockDim}.x \times \text{blockDim}.y + \text{blockDim}.x \times \text{threadIdx}.y + \text{threadIdx}.x
 $$
-
 
 ## 参考资料
 

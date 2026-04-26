@@ -66,8 +66,6 @@ $$
 C = A B^\top, \quad A, B \in \mathbb{R}^{N \times d}, \qquad C \in \mathbb{R}^{N \times N}.
 $$
 
-
-
 为了提高数据复用率，我们将矩阵 $A$ 和 $B$ 按 **行维度**切分成多个小块（tiles）。设 tile 的大小分别为 $d_A$ 和 $d_B$，则：
 
 $$
@@ -131,7 +129,6 @@ $$
 - 因此 $Q$  和 $\{K, V\}$ 被切分成 $T_{r} = \left\lceil  \frac{N}{B_{r}}  \right\rceil$ 和 $T_{c}= \left\lceil  \frac{N}{B_{c}}  \right\rceil$ 数量的小块。
 ![](Attachments/FlashAttentionTiling.png)
 
-
 在计算中，
 - Outer loop 是 $K$ 和 $V$ 矩阵（对应上一小节的 $B$ 矩阵，按列切分）
 - Inner loop 是 $Q$ 以及形状相同的 $O$ 矩阵
@@ -169,12 +166,9 @@ $$
 
 具体而言，可以用下图总结（图中各个序号对应了下一章节推导的步骤）：
 
-
 ![](Attachments/FlashAttentionV1Deduction.png)
 
-
 #### 核心局部状态计算和更新公式推导
-
 
 在进行矩阵分块计算的背景下，设 outer loop index 为 $j$，inner loop index 为 $i$。输出矩阵记为 $O$。对第 $i$ 个 query block，有：
 $$
@@ -218,13 +212,11 @@ $$
 \end{cases}
 $$
 
-
 > 对应的局部 softmax（仅用于推导，不显式计算）为：
 > $$
 > \tilde{\text{softmax}}_{ij}
 > = \frac{\tilde{P}_{ij}}{\tilde{l}_{ij}}.
 > $$
-
 
 **2. 更新 running max 和 normalizer**
 
@@ -239,10 +231,7 @@ l_i \odot e^{m_i - m_i^{\text{new}}}
 \end{cases}
 $$
 
-
 其中 $\odot$ 表示逐元素乘法（row-wise）。
-
-
 
 **3. 当前 tile 的新贡献（numerator）**
 
@@ -279,7 +268,6 @@ N_i
 \in \mathbb{R}^{B_r \times d}.}
 \end{cases}
 $$
-
 
 等价写法为：
 $$
@@ -333,11 +321,11 @@ N_i = \operatorname{diag}(l_i)\, O_i. \\
 \operatorname{diag}\!\big(e^{m_i - m_i^{\text{new}}}\big)\,
 N_i
 =
-\operatorname{diag}\!\big(l_i\, e^{m_i - m_i^{\text{new}}}\big)\, O_i. \\ 
+\operatorname{diag}\!\big(l_i\, e^{m_i - m_i^{\text{new}}}\big)\, O_i. \\
 \Delta_i
 =
 \operatorname{diag}\!\big(e^{\tilde{m}_{ij} - m_i^{\text{new}}}\big)\,
-\tilde{O}_{ij}. \\  
+\tilde{O}_{ij}. \\
 
 \boxed{O_i^{\text{new}}
 =
@@ -346,8 +334,6 @@ N_i
 \in \mathbb{R}^{B_r \times d}.}
 \end{cases}
 $$
-
-Flash Attention V2 
 
 ## 参考资料
 

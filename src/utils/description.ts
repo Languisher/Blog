@@ -38,7 +38,7 @@ const htmlEntityMap: Record<string, string> = {
 function renderMarkdownWithMath(text: string): string {
   const mathSegments: string[] = []
   const protectedText = text.replace(
-    /\$\$([\s\S]+?)\$\$|\$((?:\\.|[^$\n])+?)\$/g,
+    /\$\$([\s\S]+?)\$\$|\$((?:\\.|[^$\n])+)\$/g,
     (match, displayMath: string | undefined, inlineMath: string | undefined) => {
       if (!themeConfig.global.katex) {
         return match

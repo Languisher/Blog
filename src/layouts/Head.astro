@@ -65,8 +65,6 @@ const pageImage = postSlug
 <!-- Site Links -->
 <link rel="canonical" href={Astro.url} />
 <link rel="sitemap" href={`${base}/sitemap-index.xml`} />
-<link rel="alternate" href={`${base}/rss.xml`} type="application/rss+xml" title="RSS Feed" />
-<link rel="alternate" href={`${base}/atom.xml`} type="application/atom+xml" title="Atom Feed" />
 {allLocales.map(lang => (
   <link
     rel="alternate"

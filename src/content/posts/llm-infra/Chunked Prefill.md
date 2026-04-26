@@ -26,8 +26,6 @@ abbrlink: chunked-prefill
 
 ![](Attachments/ChunkedPrefillWorkflow.png)
 
-
-
 在每一次分块计算中，系统会：
 - 选取当前 chunk 中的至多 $c$ 个 token；
 - 计算这些 token 的 $Q/K/V$ 表示，并将新生成的 $K/V$ 写入 KV Cache；
@@ -42,8 +40,6 @@ abbrlink: chunked-prefill
 2. 调度单元变得更加细粒度，减少 Pipeline 以及调度产生的 bubble
 
 ![](Attachments/ChunkedPrefillProcess.png)
-
-
 
 ## 参考资料
 

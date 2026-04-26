@@ -8,6 +8,17 @@
 .heti {
   --at-apply: 'break-words leading-normal hyphens-auto cjk:tracking-wide';
   --post-heading-color: #007EDA;
+  --post-body-color: #000;
+}
+
+html.dark .heti {
+  --post-body-color: oklch(var(--un-preset-theme-colors-secondary));
+}
+
+.heti #post-content {
+  color: var(--post-body-color);
+  font-size: 0.96rem;
+  line-height: 1.72;
 }
 
 /* Customized Post Title */
@@ -55,7 +66,7 @@
 
 /* Paragraphs */
 .heti :where(p:not(.no-heti):not(.no-heti *)) {
-  --at-apply: 'mb-4 text-pretty cjk:text-justify';
+  --at-apply: 'mb-3.2 text-pretty cjk:text-justify';
 }
 
 /* Links */
@@ -87,6 +98,7 @@
 /* Code Blocks */
 .heti :where(pre) {
   --at-apply: 'overflow-auto uno-round-border px-4 py-3 bg-secondary/5!';
+  line-height: 1.5;
   scrollbar-width: thin;
   scrollbar-color: oklch(var(--un-preset-theme-colors-secondary) / 0) transparent;
   transition: scrollbar-color 0.3s ease-out;
@@ -96,6 +108,7 @@
 }
 .heti pre code {
   --at-apply: 'border-none bg-transparent p-0';
+  line-height: inherit;
 }
 html.dark .heti pre span {
   --at-apply: 'text-[var(--shiki-dark)]!';
@@ -117,9 +130,10 @@ html.dark .heti pre span {
 }
 .heti code span.line {
   --at-apply: 'relative pl-8';
+  line-height: inherit;
 }
 .heti code span.line::before {
-  --at-apply: 'absolute left-0 w-4 c-secondary/40 leading-1.9em';
+  --at-apply: 'absolute left-0 w-4 c-secondary/40 leading-inherit';
   content: counter(line);
   counter-increment: line;
   direction: rtl;
@@ -183,6 +197,9 @@ html.dark .heti pre span {
 /* Lists */
 .heti :where(ul, ol) {
   --at-apply: 'my-6 pl-2em';
+}
+.heti :where(ul.list-attached, ol.list-attached) {
+  --at-apply: 'mt-3.2';
 }
 .heti :where(ul, ol) :where(ul, ol) {
   --at-apply: 'mb-0.25em mt-0';

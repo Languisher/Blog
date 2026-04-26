@@ -97,7 +97,7 @@ def make_client(
 		return SyncMPClient(vllm_config, executor_class, log_stats)
 
 	return InprocClient(vllm_config, executor_class, log_stats)
-	
+
 # 在单卡的情况下，使用的是 InprocClient 类，即等价于一个 EngineCore 实例
 class InprocClient(EngineCoreClient):
     """

@@ -19,9 +19,7 @@ abbrlink: nano-vllm-sequence
 
 在 Nano-vLLM 中，单个请求由 `Sequence` 类封装，在 LLMEngine 的各个部件之间传递。Sequence = 数据（tokens） + 状态（status）+ 调度信息（scheduler metadata）+ 推理策略（sampling params）
 
-
 ![](Attachments/Sequence.png)
-
 
 `Sequence` 类实例的创建 API：
 
@@ -30,11 +28,11 @@ abbrlink: nano-vllm-sequence
 def add_request(self, prompt: str | list[int], sampling_params: SamplingParams):
 	if isinstance(prompt, str):
 		prompt = self.tokenizer.encode(prompt)
-		
+
 	# prompt: list[int], Tokenized token id 列表
 	# sampling_params: 采样策略
 	seq = Sequence(prompt, sampling_params)
-	
+
 	# ...
 ```
 
@@ -69,6 +67,6 @@ class Sequence:
 ## Sequence 类与 Engine 其它部件之间的联系
 
 - 如何被调度，什么时候执行 Prefill/Decode：由 Scheduler 决定，详见 [Nano vLLM 解读（3）：解析 Scheduler](Nano%20vLLM%20解读（3）：解析%20Scheduler.md)
-- 其逻辑层面的 KV Cache Block 
+- 其逻辑层面的 KV Cache Block
 	- 逻辑分配/释放：由 Scheduler 的子模块 BlockManager 决定，详见[Nano vLLM 解读（4）：解析 BlockManager](Nano%20vLLM%20解读（4）：解析%20BlockManager.md)
 	- 如何与实际机器上的 KV Cache Block 联系起来：由 ModelRunner 决定，详见

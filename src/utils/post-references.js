@@ -36,7 +36,7 @@ function parseFrontmatter(source) {
   const frontmatter = {}
 
   for (const line of frontmatterMatch[1].split(/\r?\n/)) {
-    const match = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/)
+    const match = line.match(/^([\w-]+):\s*(.*)$/)
     if (!match) {
       continue
     }

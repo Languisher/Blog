@@ -1,10 +1,10 @@
 ---
 title: Flash Decoding (FA3)
-published: 2026-04-19T14:49:36.954Z
+published: 2026-04-22T14:49:36.954Z
 description: |-
   FlashAttention 在训练阶段可以借助 batch 和 sequence length 提供充足的并行度，从而高效利用 GPU；但在 decode 阶段，每一步仅涉及单个 query，导致可并行的计算任务数量有限，从而难以填满 GPU，单 step 的 SM 利用率较低。
   Flash Decoding（FlashAttention V3）利用 online softmax 中间状态 $(m,l,O)$ 的可结合性，将原本的串行递推过程重写为**并行分块计算 + 规约合并**：显著提升了 decode 阶段的 SM 利用率。
-updated: 2026-04-21T18:52:28Z
+updated: 2026-04-25T18:52:28Z
 tags:
   - LLM-Infra
   - Attention
@@ -30,14 +30,12 @@ $$
 
 > 在这里我们使用 $A^{(i)}= e^{S^{(i)}}$，而我们在 [Flash Attention (FA1)](Flash%20Attention%20(FA1).md) 使用的 $\tilde{P}^{(i)} = e^{S^{(i)} - m^{(i)}}$ 是其数值稳定形式（通过减去最大值进行重标定），两者在数学上等价。
 
-
 ![](Attachments/FlashAttentionV1.png)
 
 最后一点特别重要，这意味着在原来实现中，为了得到最终输出 $O^{(k)}$，需要一步一步的从 $O^{(1)}$ 推导：
 $$
 O^{(1)}\to O^{(2)} \to \dots \to O^{(k)} \to \text{output}
 $$
-
 
 下图展示了以 $Q$ 为外循环，以 $\{K, V\}$ 为内循环的计算过程：![](https://crfm.stanford.edu/static/img/posts/2023-10-13-flashdecoding/parallelization.gif)
 

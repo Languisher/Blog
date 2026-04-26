@@ -21,11 +21,11 @@ abbrlink: nano-vllm-blockmanager
 一个 KV Cache Block 由以下几个属性来标识：
 
 ```python
-class Block:  
-	def __init__(self, block_id):  
-		self.block_id = block_id  
-		self.ref_count = 0  
-		self.hash = -1  
+class Block:
+	def __init__(self, block_id):
+		self.block_id = block_id
+		self.ref_count = 0
+		self.hash = -1
 		self.token_ids = []
 ```
 
@@ -52,7 +52,7 @@ class Block:
 	def update(self, hash: int, token_ids: list[int]):
 		self.hash = hash
 		self.token_ids = token_ids
-	
+
 	def reset(self):
 		self.ref_count = 1 # !!! <- 为什么是 1 将在后面解释
 		self.hash = -1
@@ -61,9 +61,7 @@ class Block:
 
 ## KV Cache Block Manager 实现
 
-
-
-![[Attachments/BlockManager.png]]
+![](Attachments/BlockManager.png)
 
 在 [Nano vLLM 解读（3）：解析 Scheduler](Nano%20vLLM%20解读（3）：解析%20Scheduler.md) 中我们分析了 BlockManager 在 scheduling 过程中需要发挥的作用。具体而言：
 - 在 Prefill 阶段
@@ -102,7 +100,7 @@ class Block:
 class BlockManager:
     def can_allocate(self, seq: Sequence) -> bool:
         return len(self.free_block_ids) >= seq.num_blocks
-        
+
     def _allocate_block(self, block_id: int) -> Block:
         block = self.blocks[block_id]
         assert block.ref_count == 0
@@ -110,26 +108,26 @@ class BlockManager:
         self.free_block_ids.remove(block_id)
         self.used_block_ids.add(block_id)
         return block
-        
+
     def allocate(self, seq: Sequence):
         assert not seq.block_table
         h = -1
         cache_miss = False
-        
+
         for i in range(seq.num_blocks):
-        
+
 	        # (1)
             token_ids = seq.block(i)
             h = self.compute_hash(token_ids, h) if len(token_ids) == self.block_size else -1
             block_id = self.hash_to_block_id.get(h, -1) # 匹配
-            
+
             # (2)
             if block_id == -1 or self.blocks[block_id].token_ids != token_ids:
                 cache_miss = True
             if cache_miss:
                 block_id = self.free_block_ids[0]
                 block = self._allocate_block(block_id)
-                
+
             # (3)
             else:
                 seq.num_cached_tokens += self.block_size
@@ -138,12 +136,12 @@ class BlockManager:
                     block.ref_count += 1
                 else:
                     block = self._allocate_block(block_id)
-                    
+
             # (4)
             if h != -1:
                 block.update(h, token_ids)
                 self.hash_to_block_id[h] = block_id
-                
+
             # (5)
             seq.block_table.append(block_id)
 ```
@@ -168,14 +166,14 @@ class BlockManager:
     def may_append(self, seq: Sequence):
         block_table = seq.block_table
         last_block = self.blocks[block_table[-1]]
-        
+
         # 目前已经满块了，下一次 decode 需要分配新的 KV Cache Block
         if len(seq) % self.block_size == 1:
             assert last_block.hash != -1
             block_id = self.free_block_ids[0] # 拿出空闲块队首
             self._allocate_block(block_id)
             block_table.append(block_id)
-            
+
         # 目前没有满块，但是上一轮 P/D 完之后最后一个 block 满块了
         elif len(seq) % self.block_size == 0:
             assert last_block.hash == -1
@@ -192,14 +190,13 @@ class BlockManager:
 
 释放这个块下的所有 KV Cache Block.
 
-
 ```python
 class BlockManager:
     def _deallocate_block(self, block_id: int) -> Block:
         assert self.blocks[block_id].ref_count == 0
         self.used_block_ids.remove(block_id)
         self.free_block_ids.append(block_id)
-        
+
     def deallocate(self, seq: Sequence):
         for block_id in reversed(seq.block_table):
             block = self.blocks[block_id]

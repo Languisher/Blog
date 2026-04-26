@@ -40,7 +40,7 @@ id.sunet = "jtrb";
 id.idNumber = 6504417;
 
 // -------------------
-// Can now be returned 
+// Can now be returned
 StanfordID issueNewID() {
     StanfordID id {"Jacob", "ad", 23};
     return id;
@@ -68,7 +68,6 @@ std::cout << example.first << std::endl;
 ```cpp
 std::tuple<int, std::string, double> {2, "ad", 80.8};
 ```
-
 
 ### Type alias and type inference
 
@@ -113,7 +112,7 @@ Methods of initialization.
 Example (Structured Binding).
 
 > [!note] 如何使用 Structured binding？
-> - 在函数定义时，通常使用 struct 或 std::tuple<...> 作为返回类型，将多个值打包为一个整体；在函数体内，可以在 return 语句中直接使用 {...} 进行 uniform initialization。 
+> - 在函数定义时，通常使用 struct 或 std::tuple<...> 作为返回类型，将多个值打包为一个整体；在函数体内，可以在 return 语句中直接使用 {...} 进行 uniform initialization。
 > - 在调用函数的时候，直接 `auto= [a, b, c] = f();` 进行返回参数解包为多个变量，同时避免拷贝开销
 
 This is identical to use `std::get<i>`:
@@ -124,7 +123,6 @@ std::string className = std::get<0>(classInfo);
 std::string buildingName = std::get<1>(classInfo);
 std::string language = std::get<2>(classInfo);
 ```
-
 
 ### References
 
@@ -167,9 +165,8 @@ for (auto& [num1, num2] : nums) { ... }
 
 ### L-values and R-values and reference
 
-
 *L-value*
-- has stable _identifiable location_ in memory, and 
+- has stable _identifiable location_ in memory, and
 - you can use it to modify the value stored at the location.
 
 *R-value* is something that's _"manufactured on the spot"_. It is temporary.

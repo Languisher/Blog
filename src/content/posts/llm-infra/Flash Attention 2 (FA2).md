@@ -19,7 +19,6 @@ abbrlink: flash-attention-v2
 
 在并行化方面，FA2 沿 sequence length（即 $Q$ 维度）引入了**更细粒度的并行划分**，将原本较粗粒度的计算任务拆分并分配给更多的 thread block，从而显著提高了硬件并行度与资源利用率。在 thread block 内部，FA2 **重新设计了 warp 的工作分配方式**，使不同 warp 分别负责不同的 $Q$ 子块（对应不同输出行），从而避免多个 warp 同时对同一输出进行并行写入且避免了对中间结果的合并需求，显著降低了 warp 间的同步与通信开销。
 
-
 > 参考论文：[FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691)
 
 ## 问题背景
@@ -28,7 +27,6 @@ abbrlink: flash-attention-v2
 - [Flash Attention (FA1)](Flash%20Attention%20(FA1).md)
 
 Attention 计算可以建模为：![](Attachments/StandardAttentionImplementation.png)
-
 
 FlashAttention V1 将 Q 按 sequence 维度切分为若干块 $Q_i$，同时将 K, V 也按 sequence 维度切分为 $K_j, V_j$。对于任意 $Q_i$，其对应的输出 $O_i$ 需要与所有的 $(K_j, V_j)$ 进行交互计算。具体而言，FlashAttention 通过遍历所有 KV 块 $j$，逐步累积计算 $O_i$。 下图展示了单步 $(i, j) \in [\![1, n]\!]^2, (Q_{(i)}, \{K, V\}_{(j)}) \to^\text{Update} O_{i}$ 的计算过程：
 
@@ -72,11 +70,11 @@ N_i = \operatorname{diag}(l_i)\, O_i. \\
 \operatorname{diag}\!\big(e^{m_i - m_i^{\text{new}}}\big)\,
 N_i
 =
-\operatorname{diag}\!\big(l_i\, e^{m_i - m_i^{\text{new}}}\big)\, O_i. \\ 
+\operatorname{diag}\!\big(l_i\, e^{m_i - m_i^{\text{new}}}\big)\, O_i. \\
 \Delta_i
 =
 \operatorname{diag}\!\big(e^{\tilde{m}_{ij} - m_i^{\text{new}}}\big)\,
-\tilde{O}_{ij}. \\  
+\tilde{O}_{ij}. \\
 
 \boxed{O_i^{\text{new}}
 =
@@ -85,7 +83,6 @@ N_i
 \in \mathbb{R}^{B_r \times d}.}
 \end{cases}
 $$
-
 
 ## 算法优化
 
@@ -96,18 +93,18 @@ Flash Attention V2 观察到如果将维护的输出矩阵 $O_{i}$ 改成 online
 需要注意的是 Flash Attention V2 中 $\tilde{P}_{ij}$ 与 Flash Attention V1 的定义不一样，且是完成状态更新 $(m_{i},l_{i}) \to (m_{i}^\text{new}, l_{i}^\text{new})$ 后才运算的。为了表示区别，我在 FA2 定义的变量上加了个上标。
 
 $$
-\begin{cases} 
+\begin{cases}
 \boxed{\tilde{P}_{ij}^{(\text{FA2})} = \exp(S_{ij}-m_{i}^\text{new})}  \\
-\Phi_i  
-=  
-\operatorname{diag}\!\big(e^{m_i - m_i^{\text{new}}}\big)\, N_i  
+\Phi_i
+=
+\operatorname{diag}\!\big(e^{m_i - m_i^{\text{new}}}\big)\, N_i
 \\
-\Delta_i  
-=  
+\Delta_i
+=
 \operatorname{diag}\!\big(e^{\tilde{m}_{ij} - m_i^{\text{new}}}\big)\, \tilde{O}_{ij}  \implies \boxed{\Delta_{i}= \tilde{P}_{ij}^{(\text{FA2})} V_{j}}
 \\
-\boxed{  
-N_i^{\text{new}} = \Phi_i + \Delta_i  
+\boxed{
+N_i^{\text{new}} = \Phi_i + \Delta_i
 }
 \end{cases}
 $$
@@ -134,16 +131,14 @@ $$
 
 - softmax 操作在 row 维度上做，因此固定 $Q$，循环 $\{K,V\}$ 想法更符合 softmax 特性
 - 以 $Q$ 为外循环，可以使中间状态 $(m, l, O)$ 在寄存器中连续累积，而不需要在不同 warp 之间反复读取和合并，从而减少在 SHM 上的读写与同步开销
- 
+
 ## CUDA 层级优化
 
 ### 更细粒度的并行方式
 
 FlashAttention-2 在 FlashAttention-1 的基础上，引入了**更细粒度的并行划分方式**。下图展示了 FA1 和 FA2 的并行划分方式区别：
 
-
 ![](Attachments/FlashAttentionV2ThreadBlock.png)
-
 
 在 FA1 中，计算主要在 batch size 和 head 维度上并行，每个 CUDA thread block 通常负责一个 `(b, h)` 对应的 attention 计算，即 $\text{Attention}(Q_{(b,h)}, K_{(b,h)}, V_{(b,h)})$. 这种方式的并行度受限于 $b \times n_h$，在序列较长时难以充分利用 GPU 计算资源。
 
@@ -153,7 +148,7 @@ FA2 在此基础上，
 - 每个 thread block 仅负责一部分 $Q$（即若干 token）的 attention 计算，
 - 而所有 block 共享完整的 $K$, $V$ 并独立完成对应输出行的计算。
 
-因此，FA2 的并行粒度从：  
+因此，FA2 的并行粒度从：
 $$
 (b, h) \quad \rightarrow \quad (b, h, \text{Q-block})
 $$

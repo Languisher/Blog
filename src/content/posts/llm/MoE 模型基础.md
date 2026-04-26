@@ -19,7 +19,7 @@ abbrlink: moe-basics
 - 每次推理过程中选择 Experts 的子集
 
 优势：
-- 在相同的 FLOPS 下模型有更多的参数，因此模型性能表现更好、训练更快（实验证明） 
+- 在相同的 FLOPS 下模型有更多的参数，因此模型性能表现更好、训练更快（实验证明）
 - 多一种并行方式：EP ![](Attachments/MoE-EP.png)
 
 为什么 MoE 不是很流行：
@@ -36,13 +36,11 @@ abbrlink: moe-basics
 
 如何 match token to experts？![](Attachments/MoE-TEMatch.png)
 
-
-
 现在基本上所有模型都是 Token chooses expert，尽管第二种显得更加平衡，第一种目前而言性能是最强的
 
 在 Token chooses expert 类下，有以下几种选择方式：
 - Top-k：最常用 ![](Attachments/MoE-TopK.png)
-- Hashing：作为 Baseline. 实验证明单纯哈希也能获得性能收益 
+- Hashing：作为 Baseline. 实验证明单纯哈希也能获得性能收益
 - RL：计算开销太大，性能不稳定
 - 问题建模 Linear Assignment：开销很大
 
@@ -68,7 +66,7 @@ $$
 
 #### Shared Expert
 
-更多更小的 Experts + 几个（或者一个）共享 Expert 对于所有 Token 都会被激活 
+更多更小的 Experts + 几个（或者一个）共享 Expert 对于所有 Token 都会被激活
 
 ### Expert sizes
 
@@ -98,7 +96,7 @@ $$
 $$
 G(x) = \text{Softmax}(\text{KeepTopK}(H(x),k)) \quad \text{where} \quad \text{KeepTopK}(v,k)_{i} = \begin{cases}
 v_{i} \text{ if } v_{i} \text{ is in the top } k \\ - \infty \text{ otherwise}
-\end{cases} 
+\end{cases}
 $$
 效果同样一般
 #### Heuristic '(load) balancing losses'

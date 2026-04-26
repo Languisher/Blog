@@ -10,5 +10,5 @@ draft: true
 pin: 0
 toc: true
 lang: ""
-abbrlink: ""
+abbrlink: nano-vllm-model-runner
 ---

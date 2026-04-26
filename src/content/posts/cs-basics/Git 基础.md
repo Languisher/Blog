@@ -37,11 +37,9 @@ abbrlink: git-basics-1
 - tree 表示目录结构
 - commit 表示某一时刻整个项目的状态。这里“状态”不仅是指项目的当前文件快照（内容），还包括基于哪一个上一个状态（时间关系），以及做出这些变化的作者、时间、message 等信息。
 
-
 ```
 type object = blob | tree | commit
 ```
-
 
 ### 文件系统相关：Blob, Tree 和 Snapshot
 
@@ -60,7 +58,6 @@ type blob = array<byte>
 // a directory contains named files and directories
 type tree = map<string, tree | blob>
 ```
-
 
 项目的文件**快照（Snapshot）**. 即某一时刻整个项目的完整结构 + 内容。Snapshot 可以用项目根目录的 tree 来表示，例如下图就展示了一个可能的文件快照。
 
@@ -106,7 +103,6 @@ Commit, tree 和 blob 的概念可以从下图体现。Commit 通过存储项目
 - Branch 表示一条开发分支，指向某个 commit，并随着新的提交不断向前移动，从而记录一条状态的演化路径。与此同时，不同的 branch 表示项目历史中不同的开发路径，例如并行进行修复代码逻辑 A 的 bug 和增加新功能代码逻辑 B. 一条 Branch 可以被命名为 `main`, `master`, `dev-XXX` 等.
 
 ![](Attachments/GitHEAD.png)
-
 
 **Git Reference**. 即指向某一个 commit 的指针，并且可以被灵活移动。其中，
 - 一部分 reference（如 branch）是可移动的，会随着新的提交不断向前推进；

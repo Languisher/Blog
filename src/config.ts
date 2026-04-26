@@ -162,10 +162,6 @@ export const themeConfig: ThemeConfig = {
     // social links
     links: [
       {
-        name: 'RSS',
-        url: '/atom.xml', // or /rss.xml
-      },
-      {
         name: 'GitHub',
         url: 'https://github.com/languisher',
       },

@@ -61,27 +61,27 @@ class LLMEngine:
 	    # (1-1): Tokenize
         if isinstance(prompt, str):
             prompt = self.tokenizer.encode(prompt)
-        
+
         # (1-2): 封装成 Sequence 对象
         seq = Sequence(prompt, sampling_params)
-        
+
         # (1-3): 加入 Scheduler waiting queue
         self.scheduler.add(seq)
-        
+
 	def is_finished(self):
         return self.scheduler.is_finished()
-        
+
 	def generate(
 	        self,
 	        prompts: list[str] | list[list[int]],
 	        sampling_params: SamplingParams | list[SamplingParams],
 	        use_tqdm: bool = True,
 	    ) -> list[str]:
-	    
+
 	    # (1) 将输入请求封装成 Sequence 对象，加入 Scheduler waiting queue
 	    for prompt, sp in zip(prompts, sampling_params):
 		    self.add_request(prompt, sp) # 见上方
-		    
+
 		outputs = {}
 		# (2) 循环体判断条件：Scheduler 仍有请求没有完成
 		while not self.is_finished():
@@ -90,7 +90,7 @@ class LLMEngine:
 			# (2-2): 将当前轮的输出加入 outputs
 			for seq_id, token_ids in output:
 				outputs[seq_id] = token_ids
-				
+
 		return outputs
 ```
 
@@ -106,17 +106,16 @@ class LLMEngine:
 		#     本轮要执行哪些请求
 		#     本轮要执行 P 还是 D 的一次 iteration?
         seqs, is_prefill = self.scheduler.schedule()
-        
+
         # 统计当前批处理的 token 数量，只是为了 benchmark 用
         num_tokens = sum(seq.num_scheduled_tokens for seq in seqs) if is_prefill else -len(seqs)
-        
+
         # （2-1-2） 执行这一轮模型的前向计算
         token_ids = self.model_runner.call("run", seqs, is_prefill)
-        
+
         # （2-1-3） 更新序列状态，例如追加生成 token，更新状态，维护 KV Cache 等
         self.scheduler.postprocess(seqs, token_ids, is_prefill)
-        
+
         outputs = [(seq.seq_id, seq.completion_token_ids) for seq in seqs if seq.is_finished]
         return outputs, num_tokens
 ```
-

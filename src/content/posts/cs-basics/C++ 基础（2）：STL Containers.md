@@ -24,7 +24,7 @@ abbrlink: cpp-2
 
 `std::vector<T>`.
 - Contiguous memory
-- $O(1)$ random memory access 
+- $O(1)$ random memory access
 - Insertion/removal is efficient at the end of the container
 
 ![](Attachments/container_vector.png)
@@ -39,7 +39,7 @@ Note. The memory is no longer contiguous.
 #### APIs
 Access: `[i], .at(i), .front(), .back()`
 
-Modify (Insert/Delete): 
+Modify (Insert/Delete):
   - `.push_back(x)`, `.pop_back()`, `.emplace_back(x)`
   - Only deque: `.push_front(x)`, `.pop_front()`, `.emplace_front(x)`
 Insert (Slow):
@@ -92,11 +92,9 @@ Unordered map and unordered set is implemented as a Hashmap.
 ![](Attachments/container_unordered_map.png)
 `std:unordered_map` illustration
 
-`std::unordered_map<K, V>` and `std::unordered_set<K>` 
+`std::unordered_map<K, V>` and `std::unordered_set<K>`
 - do not require `K` to have `operator<`
 - require `K` to be _hashable_
-
-
 
 #### APIs
 
@@ -115,7 +113,6 @@ Check if `m` or `s` is empty:
 
 ### Summary of data structures
 
-
 ![](Attachments/container_summary.png)
 
 ## Iterators
@@ -125,7 +122,6 @@ To iterate elements in a certain container, e.g. `std::deque`, `std::map`, `std:
 ```cpp
 for (const auto& elem : container) { ... }
 ```
-
 
 C++ iterators are like a "claw" in a claw machine.
 
