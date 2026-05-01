@@ -1,0 +1,147 @@
+---
+import type { Language } from '@/i18n/config'
+import type { Post } from '@/types'
+import { getPostPath } from '@/i18n/path'
+
+export interface Props {
+  posts: Post[]
+  lang: Language
+}
+
+const { posts, lang } = Astro.props
+
+function formatMonthDay(date: Date) {
+  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const day = `${date.getDate()}`.padStart(2, '0')
+  return `${month}-${day}`
+}
+
+const postsByYear = new Map<number, Post[]>()
+
+posts.forEach((post) => {
+  const year = post.data.published.getFullYear()
+  const yearPosts = postsByYear.get(year) ?? []
+  yearPosts.push(post)
+  postsByYear.set(year, yearPosts)
+})
+
+postsByYear.forEach((yearPosts) => {
+  yearPosts.sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf())
+})
+
+const yearEntries = [...postsByYear.entries()].sort((a, b) => b[0] - a[0])
+---
+
+<div class="tag-timeline">
+  {yearEntries.map(([year, yearPosts]) => (
+    <section class="tag-year-section relative mb-7.5 last:mb-0">
+      <h2 class="tag-year-heading mb-5 flex items-center gap-2 c-secondary/85 font-bold leading-none">
+        <span class="tag-year-text">{year}</span>
+        <span class="tag-year-count inline-flex items-center px-2 py-1">
+          {yearPosts.length}
+        </span>
+      </h2>
+
+      <div class="tag-year-body relative">
+        <div class="tag-timeline-line absolute bottom-0 left-0 top-0" aria-hidden="true" />
+        <ul>
+          {yearPosts.map((post) => {
+            const slug = post.data.abbrlink || post.id
+
+            return (
+              <li class="tag-post-row relative mb-2.5 last:mb-0">
+                <span class="tag-timeline-dot tag-post-dot absolute" aria-hidden="true" />
+                <a
+                  href={getPostPath(slug, lang)}
+                  class="tag-post-link grid items-baseline gap-x-4 border-0 border-b border-secondary/28 border-dashed pb-1.4 transition-colors lg:grid-cols-[5.8rem_minmax(0,1fr)] hover:c-primary"
+                  transition:name={`post-${slug}${lang ? `-${lang}` : ''}`}
+                  data-disable-theme-toggle-transition
+                >
+                  <time
+                    datetime={post.data.published.toISOString().split('T')[0]}
+                    class="tag-post-date c-secondary/80 leading-relaxed"
+                  >
+                    {formatMonthDay(post.data.published)}
+                  </time>
+                  <span class="tag-post-title min-w-0 c-secondary/90 leading-relaxed cjk:tracking-wide">
+                    {post.data.title}
+                  </span>
+                </a>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    </section>
+  ))}
+</div>
+
+<style>
+  .tag-timeline {
+    --tag-axis-offset: 2rem;
+    --tag-year-font-size: 2rem;
+    --tag-count-font-size: 1.05rem;
+    --tag-date-font-size: 0.98rem;
+    --tag-title-font-size: 1.05rem;
+  }
+
+  .tag-year-body {
+    padding-left: var(--tag-axis-offset);
+  }
+
+  .tag-year-text {
+    font-size: var(--tag-year-font-size);
+  }
+
+  .tag-year-count {
+    font-size: var(--tag-count-font-size);
+  }
+
+  .tag-post-date {
+    font-size: var(--tag-date-font-size);
+  }
+
+  .tag-post-title {
+    font-size: var(--tag-title-font-size);
+  }
+
+  .tag-timeline-line {
+    width: 0.28rem;
+    background: oklch(var(--un-preset-theme-colors-secondary) / 0.08);
+    transform: translateX(-50%);
+  }
+
+  .tag-timeline-dot {
+    left: 0;
+    border-radius: 999px;
+    background: oklch(var(--un-preset-theme-colors-secondary) / 0.38);
+    transform: translate(-50%, -50%);
+  }
+
+  .tag-post-dot {
+    left: calc(var(--tag-axis-offset) * -1);
+    top: 1.05rem;
+    width: 0.46rem;
+    height: 0.46rem;
+  }
+
+  .tag-year-count {
+    background: oklch(var(--un-preset-theme-colors-secondary) / 0.08);
+  }
+
+  @media (min-width: 1024px) {
+    .tag-timeline {
+      --tag-axis-offset: 2.5rem;
+      --tag-year-font-size: 2rem;
+      --tag-count-font-size: 1.05rem;
+      --tag-date-font-size: 0.98rem;
+      --tag-title-font-size: 1.05rem;
+    }
+  }
+
+  @media (max-width: 1023.9px) {
+    .tag-post-link {
+      grid-template-columns: 4.9rem minmax(0, 1fr);
+    }
+  }
+</style>

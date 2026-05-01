@@ -166,11 +166,8 @@ Standard Attention 可以建模为：
 优化之后的算法：
 
 ![](Attachments/FlashAttentionAlgo.png)
-<<<<<<< HEAD:src/content/posts/llm/LLM 推理基础术语解释.md
+
 具体可以参考我的文章：[Flash Attention (FA1)](Flash%20Attention%20(FA1).md).
-=======
-具体可以参考我的文章：[Flash Attention (FA1)](Flash%20Attention%20(FA1).md).
->>>>>>> 74f6430 (feat(blogs): add multiple blogs):src/content/posts/llm-infra/LLM 推理基础术语解释.md
 
 ## Load Balancer
 

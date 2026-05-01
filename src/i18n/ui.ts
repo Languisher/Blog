@@ -96,7 +96,7 @@ export const ui: Record<Language, Translation> = {
   },
   'zh': {
     title: 'Languisher',
-    subtitle: 'Blogs of everything',
+    subtitle: 'AI Infra 随笔',
     description: '没有想好要写什么',
     posts: '文章',
     tags: '标签',

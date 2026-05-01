@@ -1,9 +1,10 @@
 ---
 import TagList from '@/components/TagList.astro'
+import TagPostTimeline from '@/components/TagPostTimeline.astro'
 import { allLocales } from '@/config'
 import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
 import Layout from '@/layouts/Layout.astro'
-import { getAllTags } from '@/utils/content'
+import { getAllTags, getPosts } from '@/utils/content'
 
 export async function getStaticPaths() {
   return allLocales.map(lang => ({
@@ -13,6 +14,7 @@ export async function getStaticPaths() {
 
 const currentLang = getLangFromLocale(Astro.currentLocale)
 const allTags = await getAllTags(currentLang)
+const posts = (await getPosts(currentLang)).filter(post => post.data.tags.length > 0)
 ---
 
 <Layout>
@@ -23,4 +25,12 @@ const allTags = await getAllTags(currentLang)
     tags={allTags}
     lang={currentLang}
   />
+
+  <!-- Posts List -->
+  <div class="mt-10.5">
+    <TagPostTimeline
+      posts={posts}
+      lang={currentLang}
+    />
+  </div>
 </Layout>

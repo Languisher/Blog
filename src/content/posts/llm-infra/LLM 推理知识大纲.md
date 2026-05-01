@@ -1,11 +1,11 @@
 ---
-title: LLM Infra 知识大纲
+title: LLM 推理知识大纲
 published: 2026-04-20T09:05:08.527Z
 description: ""
 updated: ""
 tags:
   - LLM-Infra
-draft: true
+draft: false
 pin: 99
 toc: true
 lang: ""
@@ -17,13 +17,14 @@ abbrlink: llm-infra
 	- DDP
 	- FSDP / Zero
 - Tensor Parallelism (TP).
-	- Pipeline Parallelism (PP).
+	- [TP 实现](大模型推理并行策略.md#TP%20实现)
+- Pipeline Parallelism (PP).
 - Sequence Parallelism (SP).
 	- 和 TP 相结合
 - Context / Sequence Parallel for Long Context
 	- Context Parallelism (CP)
-	- DeepSpeed Ulysses
-	- Ring Attention
+	- [DeepSpeed Ulysses：Attention Block 的序列并行](DeepSpeed%20Ulysses：Attention%20Block%20的序列并行.md)
+	- [Ring Attention：Attention Block 的序列并行](Ring%20Attention：Attention%20Block%20的序列并行.md)
 	- USP
 - Expert Parallelism (EP)
 	- EPLB
@@ -43,16 +44,16 @@ abbrlink: llm-infra
 ## KV Cache 管理
 
 - PagedAttention
-- Prefix Caching
+- [Prefix Cache：前缀 KV Cache 缓存](Prefix%20Cache：前缀%20KV%20Cache%20缓存.md)
 - Cache eviction / reuse
 - Hybrid KV Cache Manager
 - KV transfer
 
 ## 调度优化
 
-- Static / Dynamic batching
-- Continuous Batching
-- Chunked Prefill
+- Static batching
+- [Continuous Batching](Continuous%20Batching.md)
+- [Chunked Prefill](Chunked%20Prefill.md)
 - Prefill-Decode 协同调度
 - 长短请求混部
 - Admission control / priority
@@ -74,27 +75,14 @@ abbrlink: llm-infra
 - load balance / expert placement / replication
 
 ## 模型压缩与部署成本优化
+
 - Quantization
 - KV cache quantization
 - Distillation
 - LoRA / Multi-LoRA serving
 
 ## 通信与系统基础
-- NCCL 与集合通信
-- all-reduce / all-gather / reduce-scatter / all-to-all
+
+- [并行计算基础通信原语](../parallelism/并行计算基础通信原语.md)
 - 通信-计算 overlap
-- 拓扑感知
 - 带宽模型与性能分析
-
-## 框架与系统
-### 训练框架
-- Megatron / Megatron-Core
-- DeepSpeed
-- NeMo
-- FSDP / ZeRO 生态
-
-### 推理框架
-- vLLM
-- TensorRT-LLM
-- SGLang
-- TGI / LMDeploy（按需）

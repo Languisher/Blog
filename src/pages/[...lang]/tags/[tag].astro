@@ -1,6 +1,6 @@
 ---
-import PostList from '@/components/PostList.astro'
 import TagList from '@/components/TagList.astro'
+import TagPostTimeline from '@/components/TagPostTimeline.astro'
 import { allLocales } from '@/config'
 import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
 import Layout from '@/layouts/Layout.astro'
@@ -39,7 +39,7 @@ const allTags = await getAllTags(currentLang)
 
   <!-- Posts List -->
   <div class="mt-10.5">
-    <PostList
+    <TagPostTimeline
       posts={posts}
       lang={currentLang}
     />

@@ -1,8 +1,8 @@
 ---
 title: Flash Attention (FA1)
 published: 2026-03-04T18:11:44.306Z
-description: 本文介绍 FlashAttention 的核心思想，并推导其关键公式，说明其如何通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。
-updated: 2026-04-20T21:36:03Z
+description: FlashAttention 1 相较于标准 Attention 计算其更快的主要原因在于它是 IO-aware 的。其将注意力计算划分为能够放入 GPU 片上 SRAM（共享内存）的小块（tile），并通过 online softmax 逐步计算 softmax。中间结果始终保存在更快的 SRAM 中，而不会被写回 HBM。每个块的最终输出只在计算完成后写回一次 HBM。HBM 的数据访问量从原来的 $O(n^2)$ 降低到 $O(n \cdot d)$, 其中 $d$ 是每个 head 的维度，达到了读取输入和写入输出所需的理论最小值。在 NVIDIA A100 上，对于长序列，FlashAttention 相比标准注意力通常可以获得 2–4 倍的加速。
+updated: 2026-05-01T15:32:25Z
 tags:
   - LLM-Infra
   - Attention
@@ -12,9 +12,9 @@ toc: true
 lang: zh
 abbrlink: flash-attention-v1
 ---
-**FlashAttentionV1** 通过分块计算与在线 softmax 更新，在不显式构造 $N\times N$ attention 矩阵的情况下减少显存访问与内存开销，从而提高 GPU 计算效率。具体而言：
-- 基于 Matrix Tiling 的思想，将 $\{K, V\}$ 和 $Q$ 向量分成小块，改成 for-loop 流式访问模式
-- 提出 online softmax 机制，通过在遍历过程中维护 **running max、归一化因子（denominator）以及输出累积值**，使 softmax 从依赖全局信息的操作转化为可流式计算，从而避免显式构造 $N \times N$ attention 矩阵
+
+
+**FlashAttention 1** 相较于标准 Attention 计算其更快的主要原因在于它是 IO-aware 的。其将注意力计算划分为能够放入 GPU 片上 SRAM（共享内存）的小块（tile），并通过 online softmax 逐步计算 softmax。中间结果始终保存在更快的 SRAM 中，而不会被写回 HBM。每个块的最终输出只在计算完成后写回一次 HBM。HBM 的数据访问量从原来的 $O(n^2)$ 降低到 $O(n \cdot d)$, 其中 $d$ 是每个 head 的维度，达到了读取输入和写入输出所需的理论最小值。在 NVIDIA A100 上，对于长序列，FlashAttention 相比标准注意力通常可以获得 2–4 倍的加速。
 
 > 参考论文：[FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)
 

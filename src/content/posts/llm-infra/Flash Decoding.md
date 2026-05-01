@@ -1,10 +1,10 @@
 ---
-title: Flash Decoding (FA3)
+title: Flash Decoding
 published: 2026-04-22T14:49:36.954Z
 description: |-
-  FlashAttention 在训练阶段可以借助 batch 和 sequence length 提供充足的并行度，从而高效利用 GPU；但在 decode 阶段，每一步仅涉及单个 query，导致可并行的计算任务数量有限，从而难以填满 GPU，单 step 的 SM 利用率较低。
-  Flash Decoding（FlashAttention V3）利用 online softmax 中间状态 $(m,l,O)$ 的可结合性，将原本的串行递推过程重写为**并行分块计算 + 规约合并**：显著提升了 decode 阶段的 SM 利用率。
-updated: 2026-04-25T18:52:28Z
+  FlashAttention 在训练和 prefill 阶段可以借助 batch 和 sequence length 提供充足的并行度，从而高效利用 GPU；但在 decode 阶段，每一步仅涉及单个 query，导致可并行的计算任务数量有限，从而难以填满 GPU，单 step 的 SM 利用率较低。
+  Flash Decoding利用 online softmax 中间状态 $(m,l,O)$ 的可结合性，将原本的串行递推过程重写为**并行分块计算 + 规约合并**：显著提升了 decode 阶段的 SM 利用率。
+updated: 2026-05-01T15:33:24Z
 tags:
   - LLM-Infra
   - Attention
@@ -14,8 +14,8 @@ toc: true
 lang: ""
 abbrlink: flash-decoding
 ---
-FlashAttention 在训练阶段可以借助 batch 和 sequence length 提供充足的并行度，从而高效利用 GPU；但在 decode 阶段，每一步仅涉及单个 query，导致可并行的计算任务数量有限，从而难以填满 GPU，单 step 的 SM 利用率较低。
-Flash Decoding（FlashAttention V3）利用 online softmax 中间状态 $(m,l,O)$ 的可结合性，将原本的串行递推过程重写为**并行分块计算 + 规约合并**：显著提升了 decode 阶段的 SM 利用率。
+FlashAttention 在训练和 prefill 阶段可以借助 batch 和 sequence length 提供充足的并行度，从而高效利用 GPU；但在 decode 阶段，每一步仅涉及单个 query，导致可并行的计算任务数量有限，从而难以填满 GPU，单 step 的 SM 利用率较低。
+Flash Decoding利用 online softmax 中间状态 $(m,l,O)$ 的可结合性，将原本的串行递推过程重写为**并行分块计算 + 规约合并**：显著提升了 decode 阶段的 SM 利用率。
 
 ## Flash Attention 在 LLM 推理阶段遇到的问题
 

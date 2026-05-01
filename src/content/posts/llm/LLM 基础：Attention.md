@@ -37,7 +37,10 @@ $$
 x_{1:n} = w_{1:n} E^\top \in \mathbb{R}^{n \times d}
 $$
 
-这里我们得到的是对于每个 $w_{i}$，其对应的 non-contextual embedding $x_{i} \in \mathbb{R}^d$. 在此基础上，我们通常通过一个序列建模结构（例如 RNN 或 Transformer），结合上下文信息计算每个 token 的 contextual embedding $h_i \in \mathbb{R}^d$.
+这里我们得到的是对于每个 $w_{i}$，其对应的 non-contextual embedding $x_{i} \in \mathbb{R}^d$. 在此基础上，我们通常通过一个序列建模结构（例如 RNN 或 Transformer），结合上下文信息计算每个 token 的 contextual embedding 
+$$
+h_i \in \mathbb{R}^d
+$$
 
 在自回归模型中，$h_i$ 仅依赖于该 token 之前的 tokens。
 
