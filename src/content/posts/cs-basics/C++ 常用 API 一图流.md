@@ -5,7 +5,6 @@ description: ""
 updated: ""
 tags:
   - CPP
-  - CS-Basics
 draft: false
 pin: 0
 toc: true

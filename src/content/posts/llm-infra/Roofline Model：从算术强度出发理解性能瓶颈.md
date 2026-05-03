@@ -1,8 +1,8 @@
 ---
-title: Roofline Model
+title: Roofline Model：从算术强度出发理解性能瓶颈
 published: 2026-05-01T11:55:02.856Z
 description: Roofline Model 用于衡量一个运算 / kernel 在特定计算平台（例如 GPU 或 TPU）上是计算受限（compute-bound）还是内存受限（memory-bound）。任何一个计算过程都同时受到**计算能力**和**内存带宽**两方面的约束，最终性能由两者中较小值决定。Roofline 模型不仅可以判断算子/模型的 Arithmetic Intensity 是否过低（导致 memory-bound），更重要的是用于定位性能瓶颈，指导优化方向。
-updated: ""
+updated: 2026-05-02T07:56:25Z
 tags:
   - LLM-Infra
 draft: false
@@ -42,12 +42,12 @@ Roofline 模型希望回答：
 - 从计算角度看，如果数据可以被无限快地提供，那么运算平台的峰值算力 $\pi$ 决定了每秒最多可以执行多少浮点运算（FLOPs），这是纯粹的计算上限。
 - 然而在实际系统中，计算必须依赖于数据从内存中加载，因此性能往往还会受到访存能力的限制。
 
-**最大访存能力**推导：在单位时间内（1s），系统由内存带宽所能提供的数据量，在给定算术强度（即单位数据对应的 FLOPs）的前提下，所能够支撑的最大 FLOPs；在算力无限的假设下，这一计算量可以被完全实现。即：
-- 运算平台在单位时间（1s）内最多能准备多少数据，这是由带宽决定的
-- **单位数据（1 Byte）需要执行多少 FLOPs 运算**，这一部分是由模型决定的。我们将其定义为**算术强度 (Arithmetic Intensity)** $I (\text{FLOPs/Bytes})$
+**最大访存能力**推导：
+- 带宽决定：首先因为带宽受限，运算平台在单位时间内最多能准备多少数据量（单位：Bytes/s）？
+- 算法决定：**单位数据（1 Byte）需要执行多少 FLOPs 运算**，这一部分是由模型决定的。我们将其定义为**算术强度 (Arithmetic Intensity)** $I (\text{FLOPs/Bytes})$
 - 两者结合在一起即为在访存限制下系统每秒最多能够支撑的计算量
 
-![](Attachments/Roofline-Model.png)
+![带宽决定了每秒能拿到多少数据，算术强度决定每单位数据需要执行多少运算，两者乘法即带宽所能支撑的最大计算能力，但最终还是受到算力上限的限制。](Attachments/Roofline-Model.png)
 
 
 因此：一个运算的实际性能上限应当是计算能力和访存能力两者中的较小值

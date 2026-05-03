@@ -11,14 +11,19 @@ toc: true
 lang: ""
 abbrlink: llm-infra
 ---
+> [LLM 推理基础术语解释](LLM%20推理基础术语解释.md)
+
 ## 分布式并行策略
+
+> [大模型推理并行策略](大模型推理并行策略.md)
 
 - Data Parallellism (DP).
 	- DDP
-	- FSDP / Zero
+	- [ZeRO 和 FSDP：将模型参数和中间状态分片到多卡](ZeRO%20和%20FSDP：将模型参数和中间状态分片到多卡.md)
 - Tensor Parallelism (TP).
 	- [TP 实现](大模型推理并行策略.md#TP%20实现)
 - Pipeline Parallelism (PP).
+	- [Pipeline Parallel：模型并行](Pipeline%20Parallel：模型并行.md)
 - Sequence Parallelism (SP).
 	- 和 TP 相结合
 - Context / Sequence Parallel for Long Context
@@ -35,15 +40,13 @@ abbrlink: llm-infra
 - FlashAttention v1/v2/v3/v4
 	- [Online Softmax 推导](Online%20Softmax%20推导.md)
 	- [Flash Attention (FA1)](Flash%20Attention%20(FA1).md)
-- Flash Decoding
-- PagedAttention
-- Ring Attention
-- online softmax / merge 思想
-- Sparse / Sliding Window / Linear Attention（可选）
+	- [Flash Attention 2 (FA2)](Flash%20Attention%202%20(FA2).md)
+- [Flash Decoding](Flash%20Decoding.md)
+- Sparse / Sliding Window / Linear Attention
 
 ## KV Cache 管理
 
-- PagedAttention
+- [Paged Attention：高效管理 KV Cache](Paged%20Attention：高效管理%20KV%20Cache.md)
 - [Prefix Cache：前缀 KV Cache 缓存](Prefix%20Cache：前缀%20KV%20Cache%20缓存.md)
 - Cache eviction / reuse
 - Hybrid KV Cache Manager
@@ -59,6 +62,7 @@ abbrlink: llm-infra
 - Admission control / priority
 
 ## Serving 架构
+
 - Offline vs Online inference
 - 单实例 / 多实例
 - Router / Scheduler / Worker

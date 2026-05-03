@@ -30,7 +30,10 @@ $$
 与 Naive MHA 实现的比较：基于 DeepSpeed Ulysses 的思想，重新分布 QKV：
 - **Attention 之前的 All-to-All**：把数据从 **按 sequence 切分** → **按 head 切分**
 - **Attention 之后的 All-to-All**：再把数据从 **按 head 切分** → **还原为按 sequence 切分**
-![](Attachments/MHAvsDeepSpeed.png)
+
+![](Attachments/Ulysses.png)
+
+
 ## 应用
 
 在长序列场景下常优先用 Chunked Prefill 来解决，通常不用 DeepSpeed Ulysses，因为可以避免引入的额外 All-to-All 通信开销。

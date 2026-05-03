@@ -1,11 +1,11 @@
 ---
-title: 在无外网远程服务器上使用 HuggingFace / Codex
+title: 在无外网远程机器上使用 HuggingFace 或 Codex
 published: 2026-05-01T12:04:46.686Z
 description: |-
-  在很多实际环境中远程机器往往无法直接访问外网。这会带来一系列问题，例如无法下载 HuggingFace 模型、无法调用 OpenAI / Codex API，甚至连 pip install 或 git clone 都可能失败。我们希望能够让服务器“借用”我本地的网络来对这些网站和服务器进行访问。
+  在某些环境中远程机器无法直接访问外网，导致无法在远程机器上下载 HuggingFace 模型、无法调用 OpenAI / Codex API，pip install 或 git clone 失败等等情况。我们希望能够让远程机器借用自己本地电脑的网络来对这些网站和服务器进行访问。
 
   本文将介绍基于这个思路的解决方案和实现方式。本质上，我们通过 SSH 隧道把远程服务器的请求转运到本地，再由本地去访问互联网，最后把结果再返回给远程。
-updated: ""
+updated: 2026-05-02T10:42:13Z
 tags:
   - Misc
 draft: false
@@ -14,7 +14,7 @@ toc: true
 lang: ""
 abbrlink: reverse-proxy
 ---
-在很多实际环境中远程机器往往无法直接访问外网。这会带来一系列问题，例如无法下载 HuggingFace 模型、无法调用 OpenAI / Codex API，甚至连 pip install 或 git clone 都可能失败。我们希望能够让服务器“借用”我本地的网络来对这些网站和服务器进行访问。
+在某些环境中远程机器无法直接访问外网，导致无法在远程机器上下载 HuggingFace 模型、无法调用 OpenAI / Codex API，pip install 或 git clone 失败等等情况。我们希望能够让远程机器借用自己本地电脑的网络来对这些网站和服务器进行访问。
 
 本文将介绍基于这个思路的解决方案和实现方式。本质上，我们通过 SSH 隧道把远程服务器的请求转运到本地，再由本地去访问互联网，最后把结果再返回给远程。
 
