@@ -24,10 +24,7 @@ abbrlink: llm-infra
 	- [TP 实现](大模型推理并行策略.md#TP%20实现)
 - Pipeline Parallelism (PP).
 	- [Pipeline Parallel：模型并行](Pipeline%20Parallel：模型并行.md)
-- Sequence Parallelism (SP).
-	- 和 TP 相结合
-- Context / Sequence Parallel for Long Context
-	- Context Parallelism (CP)
+- Sequence Parallelism (SP) & Context Parallelism (CP)
 	- [DeepSpeed Ulysses：Attention Block 的序列并行](DeepSpeed%20Ulysses：Attention%20Block%20的序列并行.md)
 	- [Ring Attention：Attention Block 的序列并行](Ring%20Attention：Attention%20Block%20的序列并行.md)
 	- USP
