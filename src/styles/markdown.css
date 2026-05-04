@@ -194,6 +194,44 @@ html.dark .heti pre span {
   --at-apply: 'mb-4';
 }
 
+/* Education Timeline */
+.heti .education-timeline {
+  --timeline-line-color: oklch(var(--un-preset-theme-colors-secondary) / 0.18);
+  --timeline-dot-color: oklch(var(--un-preset-theme-colors-secondary) / 0.38);
+  --timeline-muted-color: oklch(var(--un-preset-theme-colors-secondary) / 0.68);
+  --at-apply: 'relative my-6 ml-2.5 pl-10';
+}
+.heti .education-timeline::before {
+  --at-apply: 'absolute -top-2 bottom-3 left-0 w-0.75 rounded-full';
+  background: var(--timeline-line-color);
+  content: "";
+}
+.heti .education-timeline__item {
+  --at-apply: 'relative pb-12';
+}
+.heti .education-timeline__item:last-child {
+  --at-apply: 'pb-0';
+}
+.heti .education-timeline__item::before {
+  --at-apply: 'absolute -left-12 top-1.5 h-5 w-5 rounded-full';
+  background: var(--timeline-dot-color);
+  content: "";
+}
+.heti .education-timeline__year {
+  --at-apply: 'mb-3 text-4.5 c-secondary/70';
+  color: var(--timeline-muted-color);
+  line-height: 1.9;
+}
+.heti .education-timeline__title {
+  --at-apply: 'mb-3 text-4.5';
+  color: var(--post-body-color);
+  line-height: 1;
+}
+.heti :where(a.education-timeline__school) {
+  --at-apply: 'text-5 font-bold no-underline decoration-0 c-primary hover:c-primary/80';
+  line-height: 1;
+}
+
 /* Lists */
 .heti :where(ul, ol) {
   --at-apply: 'my-6 pl-2em';

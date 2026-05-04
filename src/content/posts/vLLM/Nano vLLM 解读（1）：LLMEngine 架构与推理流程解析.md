@@ -1,8 +1,8 @@
 ---
-title: Nano vLLM 解读（2）：解析 Engine
-published: 2026-04-20T13:28:49.265Z
+title: Nano vLLM 解读（1）：LLMEngine 架构与推理流程解析
+published: 2026-04-19T13:28:49.265Z
 description: 本文介绍了在 Nano-vLLM 系统中，请求是如何被封装、调度，并最终驱动模型推理的。重点关注 LLM Engine 这一层如何连接用户 API 与底层执行系统。
-updated: ""
+updated: 2026-05-04T18:25:58Z
 tags:
   - LLM-Infra
   - Nano-vLLM
@@ -17,6 +17,7 @@ abbrlink: nano-vllm-engine
 ## LLM Engine 调用
 
 ```python
+// example.py
 sampling_params = SamplingParams(temperature=0.6, max_tokens=256)
 prompts = [
 	"introduce yourself",
@@ -36,20 +37,32 @@ outputs = llm.generate(prompts, sampling_params)
 
 LLM Engine 的调用非常简单，只有一行——即调用 `generate` 函数。`generate` 接收一个 batch 的请求和对应的采样策略（在后续的系统里可以优化成流式输入），并且最终生成 batch 中每个请求的输出。
 
+## LLM Engine 组成成分
+
+LLMEngine 的核心由两个模块构成：
+
+- Scheduler：负责请求调度与 step 级执行决策（prefill / decode）
+- ModelRunner：负责执行具体的模型前向计算
+
+与此同时 LLMEngine 还包括了模型的 tokenizer，用于对请求文本输入进行预处理。
+
+
+![](Attachments/LLMEngineCOmponents.png)
+
 ### LLM Engine 调用流程
 
 > 本小节对应 Nano vLLM 的 [`Engine.generate()` API](https://github.com/GeeeekExplorer/nano-vllm/blob/812eb1c1e434576c0b7ae64d2cefb937aa80399d/nanovllm/engine/llm_engine.py#L60)，点击链接跳转。
 
 用一张图来概览 LLM Engine 的调用流程：
 
-![](Attachments/LLMEngine.png)
+![注：图里的 `self.waiting` 和 `self.running` 队列均是 Scheduler 中的属性，且调用 Scheduler 的 API 进行添加。此处只是为了展示添加 Sequence 对象逻辑。](Attachments/LLMEngine.png)
 
 下面代码忽略了实现细节，只是为了表述整体流程。
 
 `LLMEngine.generate()` 通过 `add_request()` API 一次性接受多个请求。在一次调用内部，通过反复调用 `step()` 推进所有请求直到完成（这里不是流式输入，而是一次性提交一批请求）：
 1. 将输入请求
 	1. Tokenize
-	2. 封装成 Sequence 对象
+	2. 封装成 Sequence 对象（关于 Sequence 对象请参考 [Nano vLLM 解读（2）：解析 Sequence](Nano%20vLLM%20解读（2）：解析%20Sequence.md))
 	3. 调用 `scheduler.add()` 加入 Scheduler waiting queue
 2. 当 Scheduler 仍有请求没有完成时（通过 `scheduler.is_finished()` API）
 	1. 持续调用 `step()` 。`step()` 每次推进一轮调度与执行，并返回这一轮产生的输出（将在后面解释）

@@ -11,6 +11,8 @@ toc: true
 lang: ""
 abbrlink: eplb
 ---
+> TBD：增加代码解析
+
 在 Mixture-of-Experts (MoE) 架构中，token 通过 gating 网络被动态路由到不同专家，导致 expert-level 的输入分布呈现明显的偏斜。当这些专家被分布到多个 GPU 上执行时，这种不均匀的 token 分布会直接转化为设备级的计算负载不均衡。**Expert Parallel Load Balancing (EPLB)** 用于在推理阶段使不同设备/节点上的 MoE Expert 负载均衡。
 
 - 由于分布式执行通常采用同步模式，整体 step latency 由最慢的 GPU 决定。因此，负载较高的热门专家所在 GPU 会成为性能瓶颈，而其他 GPU 即使计算完成也必须等待，从而造成算力浪费。

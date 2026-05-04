@@ -20,7 +20,10 @@ abbrlink: nano-vllm-scheduler
 
 > 本小节对应 Nano vLLM 的 [`Engine.generate()` API](https://github.com/GeeeekExplorer/nano-vllm/blob/812eb1c1e434576c0b7ae64d2cefb937aa80399d/nanovllm/engine/llm_engine.py#L60)，点击链接跳转。
 
-在具体看 Scheduler 的实现细节之前，我们先研究一下 LLM Engine 是如何调用 Scheduler 的 API 的。在 [Nano vLLM 解读（2）：解析 Engine](Nano%20vLLM%20解读（2）：解析%20Engine.md) 中我们分析了 LLM Engine 的结构，总结我们在 Scheduler 中需要实现的 API：
+在具体看 Scheduler 的实现细节之前，我们先研究一下 LLM Engine 是如何调用 Scheduler 的 API 的。在 [Nano vLLM 解读（1）：LLMEngine 架构与推理流程解析](Nano%20vLLM%20解读（1）：LLMEngine%20架构与推理流程解析.md) 中我们分析了 LLM Engine 的结构：
+![](Attachments/LLMEngine.png)
+
+总结我们在 Scheduler 中需要实现的 API：
 - `add()`：将请求添加到 waiting queue 中
 - `is_finished()`：Scheduler 停止运行条件
 - **`schedule()`：在每一轮决定：哪些 sequence 参与执行？这一轮属于 prefill 还是 decode batch？**

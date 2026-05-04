@@ -1,6 +1,6 @@
 ---
-title: Nano vLLM 解读（1）：解析 Sequence
-published: 2026-04-19T13:24:46.446Z
+title: Nano vLLM 解读（2）：解析 Sequence
+published: 2026-04-20T13:24:46.446Z
 description: 本文介绍了在 Nano-vLLM 系统中基本请求执行单位 `Sequence` 的实现。
 updated: ""
 tags:
@@ -20,7 +20,6 @@ abbrlink: nano-vllm-sequence
 在 Nano-vLLM 中，单个请求由 `Sequence` 类封装，在 LLMEngine 的各个部件之间传递。Sequence = 数据（tokens） + 状态（status）+ 调度信息（scheduler metadata）+ 推理策略（sampling params）
 
 ![](Attachments/Sequence.png)
-
 
 
 `Sequence` 类实例的创建 API：

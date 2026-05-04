@@ -1,5 +1,5 @@
 ---
-title: ZeRO 和 FSDP：将模型参数和中间状态分片到多卡
+title: ZeRO 和 FSDP：DP优化——将模型参数和中间状态分片到多卡
 published: 2026-05-03T20:40:00.127Z
 description: |-
   在传统数据并行中，每个设备都维护完整的模型参数、梯度以及优化器状态，导致显著的内存冗余。  
@@ -21,13 +21,13 @@ abbrlink: zero
 
 ## 分布式训练流程
 
-在数据并行训练中，每个设备都维护一份完整的模型参数，并在各自的数据子批次上独立计算梯度，随后通过同步操作（如 AllReduce）聚合梯度并更新模型。对于一个 batch size 为 $B$ 的训练步骤，其参数更新可以表示为：  
+在数据并行训练中，每个设备都维护一份完整的模型参数，并在各自的数据子批次上独立计算梯度，随后通过同步操作（如 AllReduce）聚合梯度并更新模型。基于一个训练集 batch size 为 $B$ 的分布式训练，在 $t$ step 时刻的参数更新过程可以表示为：  
 $$
-\theta_{t+1} = \theta_t - \eta \sum_{i=1}^{B} \nabla f(x_i)  
+\forall \theta \in \Theta, \quad \theta_{t+1} = \theta_t - \eta \sum_{i=1}^{B} \nabla f(x_i)  
 $$
-![](Attachments/mixed_precision_training.png)
 
-如上图所示，一个标准分布式训练的流程分为以下几个步骤：
+
+如下图所示，一个标准分布式训练的流程分为以下几个步骤：
 1. **前向传播**：每个 rank 使用完全相同的模型参数跑不同的数据 batch shard，各自计算出不同的 loss
 2. **反向传播**：对于每一层：
 	- 每个 rank 先算本地梯度
@@ -36,7 +36,7 @@ $$
 	- 在完成梯度同步之后，每个 rank 都已经有完全一致的梯度，每个 rank **独立执行 optimizer.step()**
 	- 这一步运算对于所有 rank 都完全相同
 
-
+![](Attachments/mixed_precision_training.png)
 ## 训练时模型参数内存占用
 
 在混合精度分布式训练中，每个模型参数不仅需要存储其本身，还需要额外维护与训练过程相关的多种状态。

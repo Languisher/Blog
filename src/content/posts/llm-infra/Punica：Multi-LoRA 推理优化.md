@@ -17,7 +17,7 @@ Punica 将 Multi-LoRA 推理中按请求执行的 for-loop 重写为分段聚合
 
 ## Multi-LoRA 问题
 
-在 [[LoRA 和 Multi-LoRA：模型参数微调]] 中，我们将 Multi-LoRA 推理形式化为：  
+在 [LoRA 和 Multi-LoRA：模型参数微调](../llm/LoRA%20和%20Multi-LoRA：模型参数微调.md) 中，我们将 Multi-LoRA 推理形式化为：  
 $$  
 h = Wx, \quad W = W_0 + \sum_i \alpha_i \Delta W_i  
 $$

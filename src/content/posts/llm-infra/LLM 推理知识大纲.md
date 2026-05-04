@@ -19,7 +19,7 @@ abbrlink: llm-infra
 
 - Data Parallellism (DP).
 	- DDP
-	- [ZeRO 和 FSDP：将模型参数和中间状态分片到多卡](ZeRO%20和%20FSDP：将模型参数和中间状态分片到多卡.md)
+	- [ZeRO 和 FSDP：DP优化——将模型参数和中间状态分片到多卡](ZeRO%20和%20FSDP：DP优化——将模型参数和中间状态分片到多卡.md)
 - Tensor Parallelism (TP).
 	- [TP 实现](大模型推理并行策略.md#TP%20实现)
 - Pipeline Parallelism (PP).

@@ -1,7 +1,7 @@
 ---
 title: Nano vLLM 解读（4）：解析 BlockManager
-published: 2026-04-23T13:36:21Z
-description: 本文基于 [Nano-vLLM](https://github.com/GeeeekExplorer/nano-vllm) 源码实现，围绕 KV Cache Block 的**分配、复用与释放机制**，系统性拆解一个最小但完整的 BlockManager 设计。
+published: 2026-05-04T20:27:57Z
+description: Block Manager 是 Scheduler 的一个子模块，实现 KV Cache Block 的**分配、复用与释放机制**。本文基于 [Nano-vLLM](https://github.com/GeeeekExplorer/nano-vllm) 源码实现，系统性拆解一个最小但完整的 BlockManager 设计。
 updated: ""
 tags:
   - LLM-Infra
@@ -12,7 +12,7 @@ toc: true
 lang: ""
 abbrlink: nano-vllm-blockmanager
 ---
-本文基于 [Nano-vLLM](https://github.com/GeeeekExplorer/nano-vllm) 源码实现，围绕 KV Cache Block 的**分配、复用与释放机制**，系统性拆解一个最小但完整的 BlockManager 设计。
+Block Manager 是 Scheduler 的一个子模块，实现 KV Cache Block 的**分配、复用与释放机制**。本文基于 [Nano-vLLM](https://github.com/GeeeekExplorer/nano-vllm) 源码实现，系统性拆解一个最小但完整的 BlockManager 设计。
 
 > 参考代码实现：[block_manager.py](https://github.com/GeeeekExplorer/nano-vllm/blob/main/nanovllm/engine/block_manager.py)
 
@@ -63,6 +63,11 @@ class Block:
 
 ![](Attachments/BlockManager.png)
 
+Block Manager 是 Scheduler 的一个子模块，用于实现KV Cache Block 的**分配、复用与释放机制**，其核心部件是 `blocks: list[Block]`，存储了所有 KV Cache Block。基于 `blocks`，
+- `free_block_ids: deque[int]` 用于索引所有可用 Block 的 ID，找到下一个可用的空闲块是 $O(1)$ 的
+- `used_block_ids: set[int]` 用于索引正在使用的 Block 的 ID
+- `hash_to_block_id: dict[int, int]` 则是用于实现 $O(1)$ 的 Hash 查找比较以便复用 KV Cache Block（参考 [Prefix Cache：前缀 KV Cache 缓存](../llm-infra/Prefix%20Cache：前缀%20KV%20Cache%20缓存.md)）
+
 在 [Nano vLLM 解读（3）：解析 Scheduler](Nano%20vLLM%20解读（3）：解析%20Scheduler.md) 中我们分析了 BlockManager 在 scheduling 过程中需要发挥的作用。具体而言：
 - 在 Prefill 阶段
 	- 需要判断是否可以分配新的 KV Cache Block 给请求 `can_allocate(seq)`
@@ -72,7 +77,7 @@ class Block:
 	- 在必要时（即新的 token 落到一个新 block 开头）追加新的 KV Cache block；或者在最后一个 block 被填满时，更新其 hash 和缓存索引：`may_append(seq)`
 - 在完成请求或者被抢占时，释放掉请求的 KV Cache Block 块：`deallocate(seq)`
 
-回顾一下在 [Nano vLLM 解读（1）：解析 Sequence](Nano%20vLLM%20解读（1）：解析%20Sequence.md) 中我们所介绍的 Sequence 对象中与 KV Cache Block 管理相关的参数：
+回顾一下在 [Nano vLLM 解读（2）：解析 Sequence](Nano%20vLLM%20解读（2）：解析%20Sequence.md) 中我们所介绍的 Sequence 对象中与 KV Cache Block 管理相关的参数：
 - `block_table` 存储 Sequence 中实际上所拥有的 KV Cache Block 序号
 - `num_blocks` 基于当前 token 数量推导出来的“应当占用的 block 数量”
 	- **`num_blocks == len(block_table)` 的思考是错误的。**`num_blocks` 表示是这些 token **理论上占几个 block**，而 `block_table` 是系统是否已经给它**真的分配好了对应 block**
