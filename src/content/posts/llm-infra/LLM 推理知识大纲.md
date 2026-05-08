@@ -13,6 +13,12 @@ abbrlink: llm-infra
 ---
 > [LLM 推理基础术语解释](LLM%20推理基础术语解释.md)
 
+## 基础知识
+
+- 通信基础：[[../parallelism/集合通信操作和其实现|集合通信操作和其实现]]
+- LLM 基础：
+	- [[../llm/LLM 基础：Attention|LLM 基础：Attention]]
+	- [[../llm/LLM 基础：Transformers|LLM 基础：Transformers]]
 ## 分布式并行策略
 
 > [大模型推理并行策略](大模型推理并行策略.md)
@@ -29,7 +35,7 @@ abbrlink: llm-infra
 	- [Ring Attention：Attention Block 的序列并行](Ring%20Attention：Attention%20Block%20的序列并行.md)
 	- USP
 - Expert Parallelism (EP)
-	- EPLB
+	- [[EPLB：MoE Expert 负载均衡]]
 - 组合并行.
 
 ## Attention 优化
@@ -84,6 +90,6 @@ abbrlink: llm-infra
 
 ## 通信与系统基础
 
-- [并行计算基础通信原语](../parallelism/并行计算基础通信原语.md)
+- [集合通信操作和其实现](../parallelism/集合通信操作和其实现.md)
 - 通信-计算 overlap
 - 带宽模型与性能分析

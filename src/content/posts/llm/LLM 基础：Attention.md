@@ -2,7 +2,7 @@
 title: LLM 基础：Attention
 published: 2026-03-01T15:24:05.272Z
 description: 本文将会介绍 LLM 的核心部件 Attention.
-updated: 2026-04-21T19:07:35Z
+updated: 2026-05-06T07:07:35Z
 tags:
   - LLM
   - Attention
@@ -18,76 +18,133 @@ abbrlink: llm-basic-1
 
 ## 引入
 
-### Encoding: Neural Modeling
-
-假设 $w_{1:n}$ 是一个 sequence，其中每一个 $w_{i}\in \mathcal{V}$ 是词表中的一个 token，可以将其理解为一个 token id 或者一个英文单词。为了进行矩阵运算，我们通常将 $w_i$ 表示为对应的 one-hot 向量：
+假设输入是一段 token 序列：
 
 $$
-w_i \in \{0,1\}^{|\mathcal{V}|}.
+w_{1:n} = (w_1, w_2, \dots, w_n).
 $$
 
-我们将字典中的每一个元素映射为在 $\mathbb{R}^d$ 中的高维向量。由于需要对字典的每一个元素都建立映射规则，因此定义对应的 embedding matrix
+在现代语言模型中，原始文本先经过 tokenizer，被切分并映射为一串 token ids：
 
 $$
-E \in \mathbb{R}^{d \times |\mathcal{V}|}
+\text{text} \xrightarrow{\text{tokenizer}} (t_1, t_2, \dots, t_n),
 $$
 
-因此对于我们的 sequence，其 embedding 是 $x = E w$，且：
+其中每个 $t_i \in \{0,1,\dots,|\mathcal V|-1\}$ 表示词表 $\mathcal V$ 中的一个 token id。
+
+接下来，模型会通过一个 embedding table 将每个 token id 映射到一个 $d$ 维向量空间中。记 embedding table 为：
+
 $$
-x_{1:n} = w_{1:n} E^\top \in \mathbb{R}^{n \times d}
+E =
+\begin{bmatrix}
+- E_1 - \\
+- E_2 - \\
+\vdots \\
+- E_{|\mathcal V|} -
+\end{bmatrix}
+\in \mathbb{R}^{|\mathcal V| \times d},
 $$
 
-这里我们得到的是对于每个 $w_{i}$，其对应的 non-contextual embedding $x_{i} \in \mathbb{R}^d$. 在此基础上，我们通常通过一个序列建模结构（例如 RNN 或 Transformer），结合上下文信息计算每个 token 的 contextual embedding 
+那么第 $i$ 个 token 的 embedding 可以直接理解为从 embedding table 中取出第 $t_i$ 行：$x_i = E[t_i] \in \mathbb{R}^d.$
+
+对于整个序列，我们可以得到：
+
 $$
-h_i \in \mathbb{R}^d
+X =
+\begin{bmatrix}
+x_1 = E[t_{1}] \\
+x_2 = E[t_{2}] \\
+\vdots \\
+x_n = E[t_{n}]
+\end{bmatrix}
+\in \mathbb{R}^{n \times d}.
 $$
 
-在自回归模型中，$h_i$ 仅依赖于该 token 之前的 tokens。
+这里得到的是每个 token 的 **non-contextual representation**：
 
-### Sentence Encoding：平均池化
+$$
+\boxed{x_i \in \mathbb{R}^d.}
+$$
+
+所谓 non-contextual，是指此时 $x_i$ 只由 token id 本身决定，不依赖它出现在什么句子、什么上下文中。也就是说，只要 token id 相同，从 embedding table 中查到的初始向量就是相同的。
+
+但语言理解真正困难的地方在于：一个 token 的含义往往不是孤立决定的，而是由它所在的上下文共同决定的。因此，在得到初始 embedding 之后，我们还需要通过一个序列建模结构，例如 RNN 或 Transformer，让不同位置的 token 之间发生信息交互。
+
+经过上下文建模之后，第 $i$ 个位置会得到新的表示：
+$$
+\boxed{h_i \in \mathbb{R}^d.}
+$$
+
+这里的 $h_i$ 就是 **contextual representation**。它不再只由当前 token 本身决定，而是由当前 token 以及它能够看到的上下文共同决定。
+
+在自回归语言模型中，由于预测当前位置时不能看到未来信息，因此 $h_i$ 通常只能依赖当前位置及其之前的 tokens：
+
+$$
+h_i = f(x_1, x_2, \dots, x_i).
+$$
+
+这里我们不展开介绍 RNN 是如何实现的，通常情况下每个 token 的 contextual representations 是根据以下方式得到的：
+
+$$
+
+  
+
+h_i = \mathrm{RNN}(x_i, h_{i-1}),
+
+  
+
+$$
+
+### RNN Sentence Encoding：平均池化
 
 在 RNN 最为流行的时代，为了通过一段文字得到二分类评价（比如评价一个评论是正面还是负面的）往往采取 Sentence Encoding：例如，可以通过 mean-pooling 得到句子表示：
 $$
 h_{\text{sentence}} = \frac{1}{n} \sum_{i=1}^{n} h_i
 $$
 
-这种做法每个词向量的权重都是一样的，不考虑词序也不考虑语义重要性。，接一个分类器，最终得到正/反二分结果。这种做法每个词向量的权重都是一样的，不考虑词序也不考虑语义重要性。
+这种方法的核心问题在于：它本质上是在对所有 token 的表示做平均。这意味着每个 token 都被赋予相同权重，模型无法区分哪些词更重要，也无法动态关注与当前任务最相关的信息。与此同时，mean pooling 本身也会压缩序列结构，使得词序信息和长距离依赖容易被弱化。
 ![](Attachments/mean-pooling-rnn.png)
 
 ## Attention：对所有“词向量”的加权平均
 
-基于上述 mean-pooling 的思想，Attention 可以看作一种 **数据依赖的加权 pooling**：不同的上下文 token 会被分配不同的重要性权重，而不是均匀平均。
+基于上述 mean-pooling 的思想，Attention 可以看作一种 **数据依赖的加权池化**：不同的上下文 token 会被分配不同的重要性权重，而不是均匀平均。
 ### 权重计算：Lookup Table 的思想
 
-Attention 本质上就是一种**加权平均**——当这些权重是通过学习得到时，这种机制会变得非常强大！
+Attention 本质上可以理解为一种**加权平均（weighted aggregation）**。而当这些权重能够根据输入内容动态学习时，这种机制就会变得非常强大。
 
-如下图，在 **查找表（lookup table）** 中，
-- 我们有一组 key 映射到对应的 value。给定一个 query，它会精确匹配某一个 key，从而返回对应的 value
-- 这是 one-hot 选择
-- 用公式可以表示为：
+为了理解 Attention，可以先从传统的 **查找表（lookup table）** 出发。无论是编程语言中的字典（dictionary），还是更底层的哈希表，本质上都在维护一种 key->value 的映射关系。
+
+如下图所示：
+- 我们拥有一组 key，每个 key 对应一个 value
+- 当给定一个 query 时，系统会找到与之匹配的 key
+- 随后返回该 key 对应的 value
+
+传统 lookup table 的特点在于：query 最终只会匹配到一个 key，因此本质上是一种 **one-hot selection**。用 $\alpha$ 表示这个过程，用公式可以表示为：
 
 $$
-O = \sum_i \alpha_i V_i, \quad \alpha_i \in \{0,1\}, \quad \sum_i \alpha_i = 1
+O = \sum_{i \in \text{Lookup Table Key}} \alpha_i V_i, \quad \alpha_i \in \{0,1\}, \quad \sum_i \alpha_i = 1
 $$
 
 ![](Attachments/lookup-table.png)
 
 而在 **Attention** 中：
-- **query** 会对所有 **key** 进行“匹配”，得到一组介于 0 和 1 之间的权重。 这个权重值由 query 和 key 的值决定。
+- **query** 会对所有 **key** 进行“匹配”，得到一组介于 0 和 1 之间的权重。 这个权重值由 query 和 key 的值决定。这一步意味着 $\alpha$ 不再是 one-hot selection.
 - 每个 key 对应的 **value** 会乘以对应权重，然后进行加权求和
 
 ![](Attachments/attention-illu.png)
 
 每个上下文 token 现在有两个向量需要表示：
-- $K$ 值：与 Query 进行点乘计算，以得到该 token 的权重值
-- $V$ 值：实际表示该 token 意义，即原先的 embedding 的意义
+- $K$ 值：与 Query 进行点乘计算，以得到该 token 的权重值。$K$ 决定了该不该关注这个 token
+- $V$ 值：表示该 token 实际提供给上下文聚合的信息内容
 
 ### Attention 公式表达
 
-考虑序列 $x_{1:n}$ 中的一个 token $x_i$。我们定义其对应的查询向量（query）为：
+考虑序列 $x_{1:n}$ 中的一个 token $x_i \in \mathbb{R}^{d \times 1}$。我们定义其对应的查询向量（query）为：
 $$
 q_i = Q x_i,\quad Q \in \mathbb{R}^{d \times d}
 $$
+
+> 注：这里为了方便数学推导，将单个 token 表示为列向量形式。在实际深度学习框架中，每个 tensor activation 的形状是 $[b,s,d]$，因此每个 token 是行向量。
 
 对于序列中的每一个 token $x_j \in \{x_1, \dots, x_n\}$，我们分别定义对应的键（key）和值（value）为：
 $$
@@ -102,7 +159,7 @@ $$
 
 其中权重 $\alpha_{ij}$ 表示第 $j$ 个 token 对 $x_i$ 的贡献强度（重要性）。
 
-这些权重的计算方式如下：
+为了让模型能够在所有上下文 token 之间动态分配注意力，以及让输出尺度稳定，我们通常希望这些权重形成一个概率分布，这些权重的计算方式如下：
 - 首先计算 query $q_i$ 与所有 key $\{k_1, \dots, k_n\}$ 的相似度（affinity），通常使用点积 $q_i^T k_j$
 - 然后在 key 维度上做 Softmax 归一化
 
@@ -110,6 +167,23 @@ $$
 $$
 \boxed{\alpha_{ij} = [\text{softmax}(q_{i}K^T)]_{j} = \frac{\exp(q_i^T k_j)}{\sum_{t=1}^{n} \exp(q_i^T k_t)}}
 $$
+
+这里：
+- 分子表示当前 query 与第 $j$ 个 token 的匹配程度
+- 分母则是在所有 token 上进行归一化，使得所有注意力权重之和为 1
+
+进一步地，对于单个 query $q_i$，我们可以得到其对应的完整注意力分布：
+
+$$
+\boxed{
+\alpha_i
+=
+(\alpha_{i1}, \alpha_{i2}, \dots, \alpha_{in})
+}
+$$
+
+它描述了当前 token 在理解自身时，会从整个上下文中的哪些 token“读取”多少信息。
+
 ### 可解释性（Interpretability）
 
 注意力机制提供了一定程度的可解释性：
@@ -119,7 +193,8 @@ $$
 
 注意力分布示例：
 
-![attention_alignment](Attachments/attention_alignment.png)
+![图中的每一行表示一个 query 对整个输入序列的注意力分布，横轴表示 key/value 所对应的输入 token，颜色越深，表示注意力权重越高。这里展示的是一个机器翻译任务。可以看到，当模型生成法语中的 “il” 时，其注意力主要集中在英文中的 “he” 上](Attachments/attention_alignment.png)
+
 
 ## Self-Attention
 
@@ -134,9 +209,8 @@ Q = X W_Q, \quad K = X W_K, \quad V = X W_V
 $$
 ## 序列顺序问题 - 位置编码（Position Embedding）
 
-### 位置编码
 
-自注意力本身不包含顺序信息，因此我们需要**显式地编码序列中的位置信息**，并将其融入到 $Q, K, V$ 中。
+自注意力本身不包含顺序信息，因此我们需要**显式地编码序列中的位置信息**，使 Attention 不仅能判断哪些 token 时相关的，还有基于它们的相对位置判断（例如“它、他、她”指代谁？）并将其融入到 $Q, K$ 中。
 
 > 对 $W_V$ 并不严格必要，因为 $W_V x_i$ 本身是非上下文的。
 
@@ -218,15 +292,11 @@ $$
 $$
 f(x, i) = x_i + p_i
 $$
-会引入：
-- $\langle p_i, y \rangle$
-- $\langle x, p_j \rangle$
-- $\langle p_i, p_j \rangle$
-以上这些变量包含了绝对位置信息。
+会引入 $\langle p_i, y \rangle$, $\langle x, p_j \rangle$, $\langle p_i, p_j \rangle$ 等包含了绝对位置信息的变量。
 
 #### 基于旋转的方案
 
-定义：
+定义旋转操作：
 $$
 f(x, i) = R_i x_i
 $$
@@ -240,7 +310,7 @@ $$
 $$
 \langle R_i x, R_j y \rangle = \langle x, R_{j-i} y \rangle
 $$
-只依赖相对位置
+只依赖相对位置，可以看到旋转操作很好满足了我们希望编码函数只包含相对位置关系的要求。
 
 #### 示例：二维旋转
 
@@ -253,25 +323,34 @@ R_i =
 \theta_i = i \omega
 $$
 
-问题：
+问题在于：
 $$
 R_i = R_j \iff (i - j)\omega = 2\pi k
 $$
 
-→ 长序列下会发生冲突（collision）
+因此单个频率的旋转编码具有周期性，**在长序列下可能发生位置冲突（collision）。** 例如取 $\omega = \frac{\pi}{1024}$，则位置 $j=0$ 和 $i=2048$ 对应相同旋转，模型无法仅通过该二维旋转区分他们的位置。虽然可以通过减小 $\omega$ 来增大周期，从而缓解长距离冲突问题，但更小的 $\omega$ 会导致 $R_i \approx R_{i+1}$，即相邻位置之间的旋转差异变小，从而降低局部位置分辨率。
 
 #### RoPE 的解决方法
 
-RoPE 在不同子空间使用不同频率进行旋转：
+因此，RoPE 并不是只使用一个旋转频率，而是在不同二维子空间中使用不同频率进行旋转，也就是说，RoPE 会将一个高维 embedding 拆成多个二维子空间，并分别执行：
+$$
+	\text{RoPE}(x,i) = \text{diag}(R_{i}^{(\omega_{j})})_{j \in \left[ 1, \dots, \frac{d}{2} \right]} x_{i}
+$$
 
 ![](Attachments/rope_rotation.png)
 
-将位置编码为高维“相位向量”，使得在所有频率上同时冲突的概率极低。
+将位置编码为高维“相位向量”，这意味着
+- 高频子空间对局部位置变化更敏感
+- 低频子空间具有更长的周期，可以表示更远距离关系
 
 ### 数学形式
 
+对 Q 和 K 使用同样的 RoPE 旋转方式：
 $$
-f_{q, k}(x_m, m) = R_{\Theta, m}^d W_{q,k} x_m
+\begin{align}
+f_{Q}(x_m, m) &= R_{\Theta, m}^d W_{Q} x_m \\
+f_{K}(x_m, m) &= R_{\Theta, m}^d W_{K} x_m
+\end{align}
 $$
 
 其中：
@@ -293,7 +372,7 @@ $$
 $$
 ![](Attachments/rope_highdim.png)
 
-## 元素级非线性
+## 非线性层避免多个 Attention 退化
 
 如果堆叠两层 attention：
 $$
@@ -302,10 +381,11 @@ o_i &= \sum_{j=1}^n \alpha_{ij} V^{(2)} \left( \sum_{k=1}^n \alpha_{jk} V^{(1)} 
 &= \sum_{k=1}^n \left( \alpha_{jk} \sum_{j=1}^n \alpha_{ij} \right) (V^{(2)} V^{(1)}) x_k
 \end{aligned}
 $$
+> 这里 $\alpha$ 分别指代不同层的权重结果，不同层的权重结果是不一致的，这里只是简写。
 
 如果两层 attention 之间没有非线性的话，多层会退化成一层.
 
-因此我们在每一层 attention 后，对每个 token 独立应用 MLP：
+因此我们需要在每一层 attention 后，对每个 token 独立应用 MLP：
 $$
 \begin{aligned}
 m_i &= \text{MLP}(\text{output}_i) \\
@@ -334,10 +414,4 @@ $$
 $$
 ![](Attachments/attention_futuremasking.png)
 
-## 总结
-
-一个最小的 self-attention 架构包含：
-- Self-Attention 操作
-- 位置编码
-- 元素级非线性
-- 未来信息 Mask（用于语言建模）
+现代大模型推理系统通常不显式构造 mask 矩阵，而是直接读取 Query 向量分别需要和哪些 Key 和 Value 向量进行计算。
