@@ -16,12 +16,12 @@ lang: zh
   </div>
   <div class="education-timeline__item">
     <div class="education-timeline__year">Sep 2025 - Mar 2028 (Predicted)</div>
-    <div class="education-timeline__title">Master of Engineering (Predicted)</div>
+    <div class="education-timeline__title">Candidate Master of Engineering</div>
     <a class="education-timeline__school" href="https://www.sjtu.edu.cn/">上海交通大学<sup>[1]</sup></a>
   </div>
   <div class="education-timeline__item">
     <div class="education-timeline__year">Sep 2025 - Mar 2028 (Predicted)</div>
-    <div class="education-timeline__title">Master of Engineering (Predicted)</div>
+    <div class="education-timeline__title">Candidate Master of Engineering</div>
     <a class="education-timeline__school" href="https://www.ensta-paris.fr/">ENSTA, IP Paris<sup>[1]</sup></a>
   </div>
 </div>
