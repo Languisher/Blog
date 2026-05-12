@@ -50,4 +50,4 @@ RingAttention 仅需要一个非常小的环形拓扑，并且支持 GPU 和 TPU
 
 - [伯克利 | 提出Ring Attention，Transformer分块，最高支持100M上下文！](https://zhuanlan.zhihu.com/p/660354607)
 
-[^1]参考：[DeepSpeed Ulysses：Attention Block 的序列并行](DeepSpeed%20Ulysses：Attention%20Block%20的序列并行.md)
+[^1]: 参考：[DeepSpeed Ulysses：Attention Block 的序列并行](DeepSpeed%20Ulysses：Attention%20Block%20的序列并行.md)

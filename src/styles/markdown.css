@@ -310,6 +310,63 @@ html.dark .heti :where(u) {
 .heti .data-footnote-backref {
   --at-apply: 'font-serif no-underline';
 }
+.heti .inline-footnote-block {
+  --at-apply: 'grid gap-x-6';
+  grid-template-columns: minmax(0, 1fr);
+}
+.heti .inline-footnote__main {
+  --at-apply: 'mb-0';
+}
+.heti .inline-footnote__main > :last-child {
+  --at-apply: 'mb-0';
+}
+.heti .inline-footnote {
+  --at-apply: 'order-2 mb-3.2 mt--1.5 text-0.82rem leading-[1.55] c-secondary/78';
+}
+.heti .inline-footnote__item {
+  --at-apply: 'flex gap-2';
+}
+.heti .inline-footnote__item:target {
+  --at-apply: 'bg-highlight';
+}
+.heti .inline-footnote__item + .inline-footnote__item {
+  --at-apply: 'mt-2';
+}
+.heti .inline-footnote__marker {
+  --at-apply: 'shrink-0 font-semibold c-primary';
+  min-width: 1.25em;
+}
+.heti .inline-footnote__content {
+  --at-apply: 'min-w-0 flex-1';
+}
+.heti .inline-footnote__content > :first-child {
+  --at-apply: 'mt-0';
+}
+.heti .inline-footnote__content > :last-child {
+  --at-apply: 'mb-0';
+}
+@media (min-width: 80rem) {
+  .heti .inline-footnote-block {
+    column-gap: 2rem;
+    grid-template-columns: minmax(12rem, 14rem) minmax(0, 1fr);
+    margin-left: -16rem;
+  }
+  .heti .inline-footnote {
+    --at-apply: 'order-none mb-0 mt-0 pr-2 text-right';
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .heti .inline-footnote__main {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .heti .inline-footnote__item {
+    --at-apply: 'justify-end';
+  }
+  .heti .inline-footnote__content {
+    --at-apply: 'flex-initial';
+  }
+}
 
 /* Horizontal Rules */
 .heti :where(hr) {

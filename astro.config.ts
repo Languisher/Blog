@@ -17,6 +17,7 @@ import { rehypeExternalLinks } from './src/plugins/rehype-external-links.mjs'
 import { rehypeHeadingAnchor } from './src/plugins/rehype-heading-anchor.mjs'
 import { rehypeHeadingNumbering } from './src/plugins/rehype-heading-numbering.mjs'
 import { rehypeImageProcessor } from './src/plugins/rehype-image-processor.mjs'
+import { rehypeInlineFootnotes } from './src/plugins/rehype-inline-footnotes.mjs'
 import { remarkContainerDirectives } from './src/plugins/remark-container-directives.mjs'
 import { remarkLeafDirectives } from './src/plugins/remark-leaf-directives.mjs'
 import { remarkListSpacing } from './src/plugins/remark-list-spacing.mjs'
@@ -81,6 +82,7 @@ export default defineConfig({
       rehypeHeadingAnchor,
       rehypeHeadingNumbering,
       rehypeImageProcessor,
+      rehypeInlineFootnotes,
       rehypeExternalLinks,
       rehypeCodeCopyButton,
     ],
