@@ -1,0 +1,719 @@
+---
+title: 【课程笔记】估计与统计识别
+published: 2026-05-14T18:52:04.089Z
+description: ""
+updated: ""
+tags:
+  - MATH
+draft: false
+pin: 0
+toc: true
+lang: ""
+abbrlink: math-estimation
+---
+
+估计与统计识别研究的核心问题是：当我们只能观察到有限的随机样本时，如何从这些样本中推断隐藏在背后的未知参数。换言之，我们并不知道真实世界的概率分布，但我们假设它属于某个参数化模型族，然后试图用数据把其中的参数“识别”出来。  
+  
+例如，假设观测数据来自正态分布 $N(m,\sigma^2)$，那么问题就变成：如何根据样本 $X_1,\dots,X_n$ 估计均值 $m$ 和方差 $\sigma^2$？这就是参数估计问题。更一般地，设未知参数为  
+$$  
+\theta \in \Theta \subset \mathbb{R}^p  
+$$  
+我们希望构造一个只依赖观测数据的函数  
+$$  
+\hat{\theta}_n = F(X_1,\dots,X_n)  
+$$  
+使得它在某种意义下接近真实参数 $\theta$。  
+
+## 随机变量知识点回顾
+  
+### 随机变量的均值、方差与协方差  
+  
+在统计估计中，我们首先需要一种语言来描述随机变量的“中心位置”和“波动程度”。对于随机变量 $X$，其期望 $\mathbb{E}[X]$ 描述平均水平；方差 $\mathrm{Var}(X)$ 描述它围绕均值的波动强度；协方差 $\mathrm{Cov}(X,Y)$ 描述两个随机变量之间是否倾向于一起变化。  
+  
+对于一般函数 $g(X)$，**期望**可以写成  
+$$  
+\mathbb{E}[g(X)]  =
+\sum_x g(x)\mathbb{P}(X=x)  =
+\int g(x)f_X(x),dx  
+$$  
+其中离散情形使用求和，连续情形使用积分。
+
+**方差**定义为  
+$$  
+\mathrm{Var}(X)  =
+\mathbb{E}\left[(X-\mathbb{E}[X])^2\right]  =
+\mathbb{E}[X^2]-\mathbb{E}[X]^2  
+$$  
+它有一个非常重要的缩放性质：  
+$$  
+\mathrm{Var}(aX+b)=a^2\mathrm{Var}(X)  
+$$  
+也就是说，平移不改变波动大小，缩放会按平方放大波动。  
+  
+如果 $X,Y$ 是两个随机变量，则  
+$$  
+\mathrm{Var}(X+Y)  =
+\mathrm{Var}(X)+\mathrm{Var}(Y)+2\mathrm{Cov}(X,Y)  
+$$  
+其中**协方差**为  
+$$  
+\mathrm{Cov}(X,Y)  
+  =
+\mathbb{E}[XY]-\mathbb{E}[X]\mathbb{E}[Y]  
+$$  
+如果 $X$ 与 $Y$ 独立，则 $\mathrm{Cov}(X,Y)=0$，但反过来一般不成立。  
+  
+对于随机向量 $X$，协方差不再是一个数，而是一个矩阵：  
+$$  
+\mathrm{Cov}(X)  
+  =
+\mathbb{E}\left[(X-\mathbb{E}[X])(X-\mathbb{E}[X])^T\right]  
+$$  
+它的第 $i$ 个对角元素就是第 $i$ 个分量的方差。一个常用的整体波动度量是  
+$$  
+\mathrm{Var}(X)=\mathrm{tr}(\mathrm{Cov}(X))  
+$$  
+即协方差矩阵的迹。  
+  
+### 常见概率分布  
+  
+统计估计经常建立在具体的概率模型上。常见分布包括均匀分布、指数分布、正态分布、Gamma 分布和负二项分布。  
+  
+**均匀分布** $U[a,b]$ 表示随机变量在区间 $[a,b]$ 上“等可能”取值，其密度为  
+$$  
+f_X(x)=\frac{1}{b-a}\mathbf{1}_{[a,b]}(x)  
+$$  
+期望和方差分别为  
+$$  
+\mathbb{E}[X]=\frac{a+b}{2},  
+\qquad  
+\mathrm{Var}(X)=\frac{(b-a)^2}{12}  
+$$  
+  
+**指数分布** $E(\lambda)$ 常用于描述等待时间，其密度为  
+$$  
+f_X(x)=\lambda e^{-\lambda x}\mathbf{1}{\mathbb{R}+}(x)  
+$$  
+期望和方差为  
+$$  
+\mathbb{E}[X]=\frac{1}{\lambda},  
+\qquad  
+\mathrm{Var}(X)=\frac{1}{\lambda^2}  
+$$  
+  
+**正态分布** $N(m,\sigma^2)$ 是统计学中最核心的分布之一，其密度为  
+$$  
+f_X(x)  
+  
+\frac{1}{\sigma\sqrt{2\pi}}  
+\exp\left(  
+-\frac{(x-m)^2}{2\sigma^2}  
+\right)  
+$$  
+其中 $m$ 控制中心位置，$\sigma^2$ 控制波动大小。  
+  
+**多元正态分布** 可以看作正态分布在向量空间中的推广。如果  
+$$  
+X\sim \mathcal{N}(\mu,\Sigma)  
+$$  
+其中 $X\in\mathbb{R}^d$，则其密度为  
+$$  
+f_X(x)  
+  
+\frac{1}{(2\pi)^{d/2}(\det\Sigma)^{1/2}}  
+\exp\left(  
+-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu)  
+\right)  
+$$  
+这里 $\mu$ 是均值向量，$\Sigma$ 是协方差矩阵。指数项中的  
+$$  
+(x-\mu)^T\Sigma^{-1}(x-\mu)  
+$$  
+可以理解为一种带协方差归一化的距离，也叫 Mahalanobis 距离。  
+  
+## 频率学派参数估计：从样本到未知参数  
+  
+**参数估计**的基本设定是：我们观察到一个 $n$-样本  $(X_1,\dots,X_n)$, 它们通常被假设为独立同分布，并来自某个参数化概率模型  ${f_\theta:\theta\in\Theta}$  真实参数 $\theta$ 未知，而我们的目标是根据样本构造估计量  
+$$  
+\hat{\theta}_n=F(X_1,\dots,X_n)  
+$$
+  
+**估计量**和**估计值**。估计量 $\hat{\theta}_n$ 是随机变量，因为它依赖随机样本；当样本实际观测为 $x_1,\dots,x_n$ 时，得到的具体数值才是估计值。  
+### 评价评估量
+
+一个自然的问题是：什么样的估计量是好的？统计学中常用几个标准来评价估计量。  
+  
+首先是**无偏性**（unbiasedness）。估计量 $\hat{\theta}_n$ 的偏差定义为  
+$$  
+B(\hat{\theta}_n,\theta)  
+  =
+\mathbb{E}[\hat{\theta}_n]-\theta  
+$$  
+如果  
+$$  
+\mathbb{E}[\hat{\theta}_n]=\theta  
+$$  
+则称它是无偏估计量。无偏性的意思是：如果我们无限次重复采样并计算估计量，它的平均值会等于真实参数。  
+  
+但无偏并不等于好。一个估计量即使平均正确，也可能波动极大。因此还需要看方差。更强的概念是**一致性（consistency）**：当样本量 $n$ 趋于无穷时，估计量应该收敛到真实参数：  
+$$  
+\lim_{n\to+\infty}  
+\mathbb{P}(|\hat{\theta}_n-\theta|>\varepsilon)=0  
+$$  
+直观地说，数据越多，估计应越准。  
+  
+一个常用充分条件是：如果估计量无偏，并且方差渐近趋于零，那么它是一致的。  
+  
+### 均方误差：偏差和方差的统一视角  
+  
+单独看偏差或方差都不完整。**均方误差**（mean squared error，MSE）或二次风险定义为  
+$$  
+\mathrm{RQM}(\hat{\theta}_n,\theta)  
+  =
+\mathbb{E}\left[  
+(\hat{\theta}_n-\theta)^2  
+\right]  
+$$  
+它可以分解为  
+$$  
+\mathrm{RQM}(\hat{\theta}_n,\theta)  
+  =
+\mathrm{Var}(\hat{\theta}_n)  
++  
+B(\hat{\theta}_n,\theta)^2  
+$$  
+在选择估计量时，不能机械地追求无偏，而应该结合一致性、方差、均方误差、可计算性以及模型假设的合理性。  
+  
+### 经验估计
+  
+最简单的估计方法是用样本对应总体。总体均值可以用样本均值估计：  
+$$  
+\overline{X}_n  
+=
+\frac{1}{n}\sum_{i=1}^n X_i  
+$$  
+它满足  
+$$  
+\mathbb{E}[\overline{X}_n]=\mathbb{E}[X], \quad \mathrm{Var}(\overline{X}_n)  
+  =
+\frac{\mathrm{Var}(X)}{n}  
+$$
+因此，当 $n$ 增大时，样本均值会越来越稳定。  
+  
+总体方差可以用经验方差估计：  
+$$  
+V_n  =
+\frac{1}{n}\sum_{i=1}^n (X_i-\overline{X}_n)^2  
+$$  
+但它通常是有偏的。为了得到无偏估计，我们使用修正经验方差：  
+$$  
+\widetilde{V}_n  
+  =
+\frac{n}{n-1}V_n  
+  =
+\frac{1}{n-1}\sum_{i=1}^n (X_i-\overline{X}_n)^2  
+$$
+  
+### 矩估计
+  
+**矩估计（method of moments）** 的思想非常朴素：如果模型参数决定了分布的矩，那么我们可以让理论矩等于样本矩，从而反解参数。  
+  
+设  
+$$  
+m_k(\theta)=\mathbb{E}_\theta[X^k]  
+$$  
+是模型在参数 $\theta$ 下的 $k$ 阶矩，而样本矩为  
+$$  
+\hat{m}_k  
+ = 
+\frac{1}{n}\sum_{i=1}^n X_i^k  
+$$  
+矩估计就是解方程  
+$$  
+m_k(\hat{\theta}_n)=\hat{m}_k  
+$$  
+如果参数是多维的，就需要多个矩方程。  
+  
+矩估计的动机是大数定律：当样本量足够大时，样本矩会收敛到理论矩。因此，只要映射 $\theta\mapsto m_k(\theta)$ 足够好，矩估计通常具有一致性。  
+  
+更一般地，也可以不用 $X^k$，而使用任意合适的连续函数 $g$：  
+$$  
+\mathbb{E}_{}\theta[g(X)]  
+\approx  
+\frac{1}{n}\sum_{i=1}^n g(X_i)  
+$$  
+这体现了矩估计的本质：用样本平均逼近总体期望。  
+  
+### 最大似然估计：选择最能解释数据的参数  
+  
+**最大似然估计（maximum likelihood estimation，MLE）** 是参数估计中最重要的方法之一。它的核心思想是：既然数据已经发生了，那么我们选择使这些数据出现概率最大的参数。  
+  
+对于独立同分布样本 $x_1,\dots,x_n$，似然函数定义为  
+$$  
+L_n(\theta;x_1,\dots,x_n)  
+  
+f_\theta(x_1,\dots,x_n)  
+  
+\prod_{i=1}^n f_\theta(x_i)  
+$$  
+最大似然估计为  
+$$  
+\hat{\theta}  
+=
+\arg\max_{\theta\in\Theta}  
+L_n(\theta;x_1,\dots,x_n)  
+$$  
+由于乘积形式不方便计算，通常取对数，得到对数似然：  
+$$  
+\ell_n(\theta)  
+  =
+\log L_n(\theta)  
+  =
+\sum_{i=1}^n \log f_\theta(x_i)  
+$$  
+于是  
+$$  
+\hat{\theta}  
+  =
+\arg\max_{\theta\in\Theta}  
+\ell_n(\theta)  
+$$  
+  
+最大似然估计的优势在于它直接利用了完整的概率模型，而不是只匹配若干个矩。因此在正则条件下，MLE 通常具有一致性、渐近正态性和渐近有效性。  
+  
+### Fisher 信息与 Cramér-Rao 下界  
+  
+如果说方差刻画估计量的不确定性，那么 Fisher 信息刻画数据中关于参数的信息量。对数似然对参数的导数称为 score：  
+$$  
+\frac{\partial}{\partial\theta} 
+\log L_n(\theta;X_1,\dots,X_n)  
+$$  
+Fisher 信息矩阵定义为  
+$$  
+M_f(\theta)  
+  =
+\mathrm{Cov}  
+\left(  
+\frac{\partial}{\partial\theta}  
+\log L_n(\theta;X_1,\dots,X_n)  
+\right)  
+$$  
+在正则条件下，也可以写成  
+$$  
+M_f(\theta)  
+  =
+-\mathbb{E}  
+\left[  
+\frac{\partial^2}{\partial\theta_i\partial\theta_j}  
+\log L_n(\theta;X_1,\dots,X_n)  
+\right]_{i,j}  
+$$  
+  
+Fisher 信息越大，说明似然函数对参数变化越敏感，因此数据越能区分不同参数。Cramér-Rao 不等式给出了无偏估计量方差的理论下界：  
+$$  
+\mathrm{Cov}(\hat{\theta}_n)  
+\geq  
+M_f(\theta)^{-1}  
+$$  
+这意味着任何无偏估计量都不可能突破这个下界。如果某个估计量达到了这个下界，则称它是有效估计量。  
+  
+更具体地，如果存在某个函数 $F$ 使得  
+$$  
+\frac{\partial}{\partial\theta}  
+\log L_n(\theta;X_1,\dots,X_n)  
+  =
+M_f(\theta)  
+\left(  
+F(X_1,\dots,X_n)-\theta  
+\right)  
+$$  
+那么  
+$$  
+\hat{\theta}_n=F(X_1,\dots,X_n)  
+$$  
+就是有效估计量。  
+  
+## 贝叶斯估计：把参数也看成随机变量  
+  
+频率学派中，参数 $\theta$ 是固定但未知的；贝叶斯学派则把 $\theta$ 看成随机变量。这个视角改变了问题的形式：我们不再只是问“哪个参数最能解释数据”，而是问“观察数据之后，参数的后验分布是什么”。  
+  
+设观测样本为 $z$，参数先验为 $\pi(\theta)$，似然为 $f(z|\theta)$。根据 Bayes 公式：  
+$$  
+f(\theta|z)  
+  =
+\frac{f(z|\theta)\pi(\theta)}{f(z)}  
+$$  
+其中  
+$$  
+f(z)  
+  =
+\int f(z|\theta)\pi(\theta),d\theta  
+$$  
+称为边缘似然或 evidence。  
+  
+贝叶斯估计的核心对象是后验分布  
+$$  
+\pi(\theta|z)  
+\propto  
+f(z|\theta)\pi(\theta)  
+$$  
+它把先验知识和观测数据结合起来。先验 $\pi(\theta)$ 表示观察数据之前我们对参数的认识，似然 $f(z|\theta)$ 表示不同参数解释数据的能力，后验则表示观察数据之后的更新认识。  
+  
+### 先验分布：非信息先验、Jeffreys 先验与共轭先验  
+  
+先验分布的选择是贝叶斯方法中的关键问题。如果没有明确先验知识，可以使用非信息先验。例如，对于位置参数，可以考虑**平移不变先验**：  
+$$  
+\pi(\theta)=\pi(\theta+\theta_0)  
+$$  
+对于尺度参数，可以考虑**尺度不变先验：**  
+$$  
+\pi(\theta)=\lambda\pi(\lambda\theta)  
+$$  
+  
+更系统的选择是 **Jeffreys 先验**：  
+$$  
+\pi(\theta)  
+\propto  
+\sqrt{\det I(\theta)}, \quad I(\theta)  
+  =
+-\mathbb{E}  
+\left[  
+\frac{\partial^2}{\partial\theta_i\partial\theta_j}  
+\log f(Z|\theta)  
+\right]  
+$$
+  
+Jeffreys 先验的动机是让先验在参数重参数化下保持不变。  
+  
+另一个重要概念是**共轭先验**。如果先验和后验属于同一分布族，则称先验是共轭的。共轭先验的好处是计算简单。例如，二项分布的参数 $p$ 常用 Beta 分布作为共轭先验；正态均值在方差已知时常用正态先验。  
+  
+### 贝叶斯估计量：从后验分布到点估计  
+  
+有了后验分布以后，还需要从中提取一个点估计。贝叶斯估计通过损失函数来定义“最优”。  
+  
+设损失函数为  
+$$  
+C(\theta,\hat{\theta})  
+$$  
+表示真实参数为 $\theta$，估计为 $\hat{\theta}$ 时的代价。给定观测 $z$ 后，贝叶斯估计量定义为  
+$$  
+\hat{\theta}  
+  =
+T^\pi(z)  
+  =
+\arg\min_T  
+\mathbb{E}^\pi[  
+C(\theta,T)  
+|z  
+]  
+$$  
+也就是最小化后验期望损失：  
+$$  
+\hat{\theta}  
+  =
+\arg\min_T  
+\int_\Theta  
+C(\theta,T(z))  
+f(\theta|z),d\theta  
+$$  
+  
+不同损失函数会导出不同估计量。在平方损失下：  
+$$  
+C(\theta,\hat{\theta})  
+  =
+|\theta-\hat{\theta}|^2  
+$$  
+最优估计是后验均值：  
+$$  
+\hat{\theta}  
+  =
+\mathbb{E}[\theta|Z=z]  
+$$  
+这也叫 MMSE 估计。  
+  
+在绝对值损失下，最优估计是后验中位数；在 $0-1$ 损失下，最优估计是后验众数，也就是 MAP 估计。  
+  
+### MAP 估计：最大后验估计  
+  
+**最大后验估计（maximum a posteriori，MAP）** 选择使后验密度最大的参数：  
+$$  
+\hat{\theta}_{MAP}  
+  =
+\arg\max_\theta f(\theta|z)  
+$$  
+由于  
+$$  
+f(\theta|z)  
+\propto  
+f(z|\theta)\pi(\theta)  
+$$  
+因此  
+$$  
+\hat{\theta}_{MAP}  
+  =
+\arg\max_\theta  
+f(z|\theta)\pi(\theta)  
+$$  
+  
+MAP 与 MLE 的关系非常清楚：MLE 只最大化似然，而 MAP 在似然之外额外乘上先验。当先验是常数时，MAP 退化为 MLE。换句话说，MAP 可以理解为“带先验正则化的最大似然估计”。  
+  
+## 混合模型：一个总体可能来自多个隐含群体  
+  
+前面的模型通常假设数据来自单一分布。但实际问题中，一个总体往往由多个子群体混合而成。例如，人的身高数据可能来自男性和女性两个群体的混合；图像像素可能来自前景和背景的混合；聚类问题中，一个样本可能属于多个潜在类别之一。  
+  
+混合模型（mixture model）假设观测变量 $X$ 的分布由 $K$ 个成分分布混合得到。设隐变量 $Z$ 表示样本来自第几个成分：  
+$$  
+Z\in\{1,\dots,K\}  
+$$  
+且  
+$$  
+\mathbb{P}(Z=j)=p_j,  
+\qquad  
+\sum_{j=1}^K p_j=1  
+$$  
+若第 $j$ 个成分的密度为 $f_j(x)$，则总体密度为  
+$$  
+f(x)  
+  =
+\sum_{j=1}^K p_j f_j(x)  
+$$  
+它是多个密度函数的凸组合。  
+  
+混合模型的困难在于：我们只观察到 $X_i$，但不知道它来自哪个成分 $Z_i$。这个未观测的 $Z_i$ 就是隐变量。  
+  
+### EM 算法：在隐变量存在时最大化似然  
+  
+混合模型的似然函数通常包含求和：  
+$$  
+L(\theta)  
+  =
+\prod_{i=1}^n  
+\sum_{j=1}^K  
+p_j f_j(x_i;\theta)  
+$$  
+对数似然为  
+$$  
+\ell(\theta)  
+  =
+\sum_{i=1}^n  
+\log  
+\left(  
+\sum_{j=1}^K p_j f_j(x_i;\theta)  
+\right)  
+$$  
+这个“log 里面有 sum”的结构使得直接最大化很困难。  
+  
+EM 算法的思想是：如果我们知道每个样本属于哪个成分，参数估计会变得简单；虽然我们不知道，但可以在当前参数下计算每个样本属于各成分的后验概率，然后用这些概率作为软标签来更新参数。  
+  
+E 步计算责任度：  
+$$  
+\tilde{p}_{i,j}^{(m)}  
+  =
+\mathbb{P}(Z_i=j|X_i=x_i,\theta_m)  
+  =
+\frac{  
+f_j(x_i;\theta_m)p_j^{(m)}  
+}{  
+\sum_{k=1}^K f_k(x_i;\theta_m)p_k^{(m)}  
+}  
+$$  
+它表示在当前参数 $\theta_m$ 下，第 $i$ 个样本属于第 $j$ 个成分的概率。  
+  
+M 步最大化加权完整数据对数似然：  
+$$  
+\theta_{m+1}  
+  =
+\arg\max_{\theta\in\Theta}  
+\sum_{i=1}^n  
+\sum_{j=1}^K  
+\tilde{p}{i,j}^{(m)}  
+\log  
+\left(  
+f_j(x_i;\theta)p_j(\theta)  
+\right)  
+$$  
+EM 算法保证似然不下降：  
+$$  
+L(\theta{m+1})  
+\geq  
+L(\theta_m)  
+$$  
+所以它可以看成一种“用当前模型补全隐变量，再用补全后的数据重新估计模型”的迭代过程。  
+  
+## 线性高斯模型
+  
+线性高斯模型是估计理论中最重要的模型之一，设有 $N$ 次观测：  
+$$  
+Z_k=H_k\theta+B_k,  
+\qquad  
+k=1,\dots,N  
+$$  
+其中 $Z_k$ 是观测向量，$\theta$ 是未知参数，$H_k$ 是已知矩阵，$B_k$ 是高斯噪声：  
+$$  
+B_k\sim \mathcal{N}(m_k,R_k)  
+$$  
+并且不同 $B_k$ 相互独立。  
+  
+因此  
+$$  
+Z_k\sim \mathcal{N}(H_k\theta+m_k,R_k)  
+$$  
+我们的目标是根据所有观测 $Z_1,\dots,Z_N$ 估计 $\theta$。  
+  
+### 频率学派下的 Gauss-Markov 估计  
+  
+在线性高斯模型中，最大似然估计等价于加权最小二乘。其正规方程为  
+$$  
+\left(  
+\sum_{k=1}^N H_k^TR_k^{-1}H_k  
+\right)  
+\hat{\theta}_N  
+  =
+\sum_{k=1}^N  
+H_k^TR_k^{-1}(Z_k-m_k)  
+$$ 
+这里  $\sum_{k=1}^N H_k^TR_k^{-1}H_k$ 称为正规矩阵。若其可逆，则估计量为  
+$$  
+\hat{\theta}_N  
+  =
+\left(  
+\sum_{k=1}^N H_k^TR_k^{-1}H_k  
+\right)^{-1}  
+\sum_{k=1}^N  
+H_k^TR_k^{-1}(Z_k-m_k)  
+$$  
+  
+这个公式的含义很清楚：噪声协方差 $R_k$ 越小，说明第 $k$ 个观测越可靠，因此权重 $R_k^{-1}$ 越大。  
+
+> 具体推导过程可以见 [Cours 4 推导](Attachments/Cours%204%20推导.pdf)
+
+  
+### 递归最小二乘：在线估计  
+  
+如果数据不是一次性给出，而是逐个到达，那么每来一个新观测都重新求逆会很低效。**递归最小二乘（recursive least squares，RLS）** 通过递推更新参数估计。  
+  
+设  
+$$  
+P_k=Q_k^{-1}  
+$$  
+表示当前估计不确定性的矩阵。给定新观测 $Z_{k+1}$，更新公式为  
+$$  
+\hat{\theta}_{k+1}  
+  =
+\hat{\theta}_k  
++  
+K_{k+1}  
+\left(  
+Z_{k+1}-m_{k+1}-H_{k+1}\hat{\theta}_{k}  
+\right)  
+$$  
+其中  
+$$  
+K_{k+1} 
+  =
+P_kH_{k+1}^TS_{k+1}^{-1}  
+$$  
+$$  
+S_{k+1}  
+  =
+H_{k+1}P_kH_{k+1}^T+R_{k+1}  
+$$  
+$$  
+P_{k+1}  
+  =
+P_k-K_{k+1}H_{k+1}P_k  
+$$  
+  
+这里的结构非常重要。括号中的  
+$$  
+Z_{k+1}-m_{k+1}-H_{k+1}\hat{\theta}_{k} 
+$$  
+是预测误差，也叫 innovation；$K_{k+1}$ 是增益，它决定新观测应该对当前估计产生多大影响。  
+  
+### 指数遗忘
+  
+如果系统参数可能随时间变化，那么太久以前的数据不应和新数据拥有相同权重。这时引入遗忘因子 $\lambda$：  
+$$  
+0<\lambda\leq 1  
+$$  
+正规方程变为  
+$$  
+\left(  
+\sum_{k=1}^N  
+\lambda^{N-k}  
+H_k^TR_k^{-1}H_k  
+\right)  
+\hat{\theta}_N  
+  =
+\sum_{k=1}^N  
+\lambda^{N-k}  
+H_k^TR_k^{-1}(Z_k-m_k)  
+$$  
+当 $\lambda=1$ 时，没有遗忘；当 $\lambda<1$ 时，越早的数据权重越小。  
+  
+在递归公式中，对应的协方差更新为  
+$$  
+P_{k+1}  
+  =
+\frac{1}{\lambda}  
+\left(  
+P_k-K_{k+1}H_{k+1}P_k  
+\right)  
+$$  
+这相当于在每一步人为增大不确定性，使模型更愿意接受新数据。  
+  
+### 贝叶斯线性高斯估计：先验作为额外观测  
+  
+在线性高斯模型中，如果我们进一步假设参数本身也服从高斯先验：  
+$$  
+\theta\sim \mathcal{N}(m_\theta,R_\theta)  
+$$  
+并且  
+$$  
+Z_k|\theta  
+\sim  
+\mathcal{N}(H_k\theta+m_k,R_k)  
+$$  
+那么后验分布仍然是高斯分布。这是高斯分布的共轭性带来的便利。  
+  
+贝叶斯正规方程为  
+$$  
+\left(  
+R_\theta^{-1}  
++  
+H_{1:N}^TR_{1:N}^{-1}H_{1:N}  
+\right)  
+\hat{\theta}_N  
+  =
+R_\theta^{-1}m_\theta  
++  
+H_{1:N}^TR_{1:N}^{-1}(Z_{1:N}-m_{1:N})  
+$$  
+对应估计量为  
+$$  
+\hat{\theta}_N  
+  =
+\left(  
+R_\theta^{-1}  
++  
+H_{1:N}^TR_{1:N}^{-1}H_{1:N}  
+\right)^{-1}  
+\left(  
+R_\theta^{-1}m_\theta  
++  
+H_{1:N}^TR_{1:N}^{-1}(Z_{1:N}-m_{1:N})  
+\right)  
+$$  
+  
+这个公式可以理解为：贝叶斯估计把先验也当成了一条“虚拟观测”。其中 $R_\theta^{-1}$ 是先验信息矩阵，$m_\theta$ 是先验均值。先验越确定，$R_\theta$ 越小，$R_\theta^{-1}$ 越大，估计结果就越靠近先验均值。  
+  
+递归形式也很自然：只需要把初始值设为  
+$$  
+\hat{\theta}_{0}=m_\theta,  
+\qquad  
+P_0=R_\theta  
+$$  
+之后使用和递归最小二乘相同的更新公式即可。  
+  
+
+

@@ -28,3 +28,10 @@ lang: zh
 
 
 [1]：双学位项目
+
+## 论文成果
+
+- **CELLServe: An SLO-Aware and Cost-Efficient LLM Serving System for Serverless Platforms**
+    under review at ACM Transactions on Architecture and Code Optimization (TACO), co-first author
+
+部分工作目前仍处于双盲评审阶段，因此暂不公开。

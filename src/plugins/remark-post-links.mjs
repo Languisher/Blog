@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { visit } from 'unist-util-visit'
-import { createPostReferenceRegistry, resolvePostReferenceUrl } from '../utils/post-references.js'
+import { createPostReferenceRegistry, resolvePostAssetUrl, resolvePostReferenceUrl } from '../utils/post-references.js'
 
 export function remarkPostLinks({ postsDir, base = '', defaultLocale }) {
   return (tree, file) => {
@@ -23,6 +23,16 @@ export function remarkPostLinks({ postsDir, base = '', defaultLocale }) {
 
       if (rewrittenUrl) {
         node.url = rewrittenUrl
+        return
+      }
+
+      const assetUrl = resolvePostAssetUrl(node.url, sourceFilePath, registry, {
+        base,
+        defaultLocale,
+      })
+
+      if (assetUrl) {
+        node.url = assetUrl
       }
     })
   }
