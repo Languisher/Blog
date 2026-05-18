@@ -53,9 +53,6 @@ $$
 \Delta W = BA, \quad B \in \mathbb{R}^{d \times r}, \; A \in \mathbb{R}^{r \times k}, \; r \ll \min(d, k)
 $$
 
-
-
-
 因此，原来的前向传播变为：
 
 $$
@@ -74,8 +71,8 @@ LoRA 可以在固定底座模型的基础上，通过引入低秩扰动 $\Delta 
 - 每个任务对应一个 LoRA Adapter，即一组低秩参数 $(A_i, B_i)$，对应扰动 $\Delta W_i = B_i A_i$
 - 推理时，通过权重 $\alpha_i$ 对多个 LoRA Adapter 进行加权组合：
 
-$$  
-W = W_0 + \sum_i \alpha_i \Delta W_i  
+$$
+W = W_0 + \sum_i \alpha_i \Delta W_i
 $$
 - 权重 $\alpha_i$ 可以是固定的、由用户指定的，或根据输入动态计算
 

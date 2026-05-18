@@ -81,7 +81,7 @@ const { Content, headings, remarkPluginFrontmatter } = await render(post)
       />
     </div>
     <!-- TOC -->
-    {post.data.toc && <TOC headings={headings} />}
+    {post.data.toc && <TOC headings={headings} body={post.body} />}
     <!-- Content -->
     <div id="post-content">
       <Content />

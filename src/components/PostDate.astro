@@ -9,9 +9,10 @@ interface Props {
   date: Date
   updatedDate?: Date
   minutes: number
+  showReadingTime?: boolean
 }
 
-const { date, updatedDate, minutes } = Astro.props
+const { date, updatedDate, minutes, showReadingTime = true } = Astro.props
 const { dateFormat: format } = themeConfig.global
 const isPost = isPostPage(Astro.url.pathname)
 const timeSpacingClass = isPost ? 'ml-1.75' : 'ml-1.5'
@@ -75,6 +76,8 @@ function formatDate(date: Date, format: DateFormat) {
 )}
 
 <!-- reading time -->
-<span class={timeSpacingClass}>
-  {minutes} min
-</span>
+{showReadingTime && (
+  <span class={timeSpacingClass}>
+    {minutes} min
+  </span>
+)}

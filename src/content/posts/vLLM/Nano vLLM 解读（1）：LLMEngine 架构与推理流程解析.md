@@ -46,7 +46,6 @@ LLMEngine 的核心由两个模块构成：
 
 与此同时 LLMEngine 还包括了模型的 tokenizer，用于对请求文本输入进行预处理。
 
-
 ![](Attachments/LLMEngineCOmponents.png)
 
 ### LLM Engine 调用流程

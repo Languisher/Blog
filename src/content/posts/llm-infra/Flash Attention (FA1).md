@@ -13,7 +13,6 @@ lang: zh
 abbrlink: flash-attention-v1
 ---
 
-
 **FlashAttention 1** 相较于标准 Attention 计算其更快的主要原因在于它是 IO-aware 的。其将注意力计算划分为能够放入 GPU 片上 SRAM（共享内存）的小块（tile），并通过 online softmax 逐步计算 softmax。中间结果始终保存在更快的 SRAM 中，而不会被写回 HBM。每个块的最终输出只在计算完成后写回一次 HBM。HBM 的数据访问量从原来的 $O(n^2)$ 降低到 $O(n \cdot d)$, 其中 $d$ 是每个 head 的维度，达到了读取输入和写入输出所需的理论最小值。在 NVIDIA A100 上，对于长序列，FlashAttention 相比标准注意力通常可以获得 2–4 倍的加速。
 
 > 参考论文：[FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)

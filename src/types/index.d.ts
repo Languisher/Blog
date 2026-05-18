@@ -18,6 +18,21 @@ export interface ThemeConfig {
     base: string
     favicon: string
   }
+  homeIntro?: {
+    enabled: boolean
+    title: string
+    description: string
+    translations?: Partial<Record<Language, {
+      title: string
+      description: string
+    }>>
+  }
+  homePostList?: {
+    excerptLength?: {
+      cjk: number
+      other: number
+    }
+  }
   color: {
     mode: 'light' | 'dark' | 'auto'
     light: {

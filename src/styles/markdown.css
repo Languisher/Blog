@@ -321,7 +321,7 @@ html.dark .heti :where(u) {
   --at-apply: 'mb-0';
 }
 .heti .inline-footnote {
-  --at-apply: 'order-2 mb-3.2 mt--1.5 text-0.82rem leading-[1.55] c-secondary/78';
+  --at-apply: 'order-2 mb-3.2 mt-1 text-0.82rem leading-[1.55] c-secondary/78';
 }
 .heti .inline-footnote__item {
   --at-apply: 'flex gap-2';
@@ -345,7 +345,7 @@ html.dark .heti :where(u) {
 .heti .inline-footnote__content > :last-child {
   --at-apply: 'mb-0';
 }
-@media (min-width: 80rem) {
+@media (min-width: 100.5rem) {
   .heti .inline-footnote-block {
     column-gap: 2rem;
     grid-template-columns: minmax(12rem, 14rem) minmax(0, 1fr);

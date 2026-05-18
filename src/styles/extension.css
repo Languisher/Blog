@@ -51,6 +51,14 @@
 }
 
 /* Admonition >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
+.admonition-note,
+.admonition-tip,
+.admonition-important,
+.admonition-warning,
+.admonition-caution {
+  background-color: oklch(var(--admonition-color) / 0.08);
+}
+
 .admonition-title {
   --at-apply: 'mb-4 flex items-center font-semibold';
 }
@@ -62,6 +70,7 @@
 /* Note */
 .admonition-note {
   --at-apply: 'border-note!';
+  --admonition-color: var(--un-preset-theme-colors-note);
 }
 .admonition-note .admonition-title {
   --at-apply: 'c-note';
@@ -74,6 +83,7 @@
 /* Tip */
 .admonition-tip {
   --at-apply: 'border-tip!';
+  --admonition-color: var(--un-preset-theme-colors-tip);
 }
 .admonition-tip .admonition-title {
   --at-apply: 'c-tip';
@@ -86,6 +96,7 @@
 /* Important */
 .admonition-important {
   --at-apply: 'border-important!';
+  --admonition-color: var(--un-preset-theme-colors-important);
 }
 .admonition-important .admonition-title {
   --at-apply: 'c-important';
@@ -98,6 +109,7 @@
 /* Warning */
 .admonition-warning {
   --at-apply: 'border-warning!';
+  --admonition-color: var(--un-preset-theme-colors-warning);
 }
 .admonition-warning .admonition-title {
   --at-apply: 'c-warning';
@@ -110,6 +122,7 @@
 /* Caution */
 .admonition-caution {
   --at-apply: 'border-caution!';
+  --admonition-color: var(--un-preset-theme-colors-caution);
 }
 .admonition-caution .admonition-title {
   --at-apply: 'c-caution';

@@ -23,6 +23,7 @@ import { rehypeInlineFootnotes } from './src/plugins/rehype-inline-footnotes.mjs
 import { remarkContainerDirectives } from './src/plugins/remark-container-directives.mjs'
 import { remarkLeafDirectives } from './src/plugins/remark-leaf-directives.mjs'
 import { remarkListSpacing } from './src/plugins/remark-list-spacing.mjs'
+import { remarkMark } from './src/plugins/remark-mark.mjs'
 import { remarkPostLinks } from './src/plugins/remark-post-links.mjs'
 import { remarkReadingTime } from './src/plugins/remark-reading-time.mjs'
 import { collectPostAssets } from './src/utils/post-references.js'
@@ -161,15 +162,16 @@ export default defineConfig({
       [remarkPostLinks, { postsDir: path.resolve('./src/content/posts'), base, defaultLocale }],
       remarkContainerDirectives,
       remarkLeafDirectives,
+      remarkMark,
       remarkListSpacing,
       remarkReadingTime,
     ],
     rehypePlugins: [
-      rehypeKatex,
-      [rehypeMermaid, { strategy: 'pre-mermaid' }],
       rehypeSlug,
       rehypeHeadingAnchor,
       rehypeHeadingNumbering,
+      rehypeKatex,
+      [rehypeMermaid, { strategy: 'pre-mermaid' }],
       rehypeImageProcessor,
       rehypeInlineFootnotes,
       rehypeExternalLinks,

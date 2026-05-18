@@ -2,11 +2,13 @@
 import type { MarkdownHeading } from 'astro'
 import TocIcon from '@/assets/icons/toc-icon.svg'
 import { ui } from '@/i18n/ui'
+import { renderMarkdownWithMath } from '@/utils/description'
 import { attachHeadingNumbers } from '@/utils/heading-numbering.mjs'
 import { getPageInfo } from '@/utils/page'
 
 interface Props {
   headings: MarkdownHeading[]
+  body?: string
 }
 
 const { currentLang } = getPageInfo(Astro.url.pathname)
@@ -24,12 +26,68 @@ function getHeadingDisplayText(text: string, headingNumber?: string) {
   return text.replace(new RegExp(`^${escapeRegExp(`${headingNumber}.`)}\\s*`), '')
 }
 
-const { headings = [] } = Astro.props
+function getMarkdownHeadingTexts(body: string) {
+  const headingTexts: string[] = []
+  let fenceMarker: string | null = null
+
+  for (const line of body.split(/\r?\n/)) {
+    const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fenceMatch) {
+      const marker = fenceMatch[1][0]
+      if (!fenceMarker) {
+        fenceMarker = marker
+      }
+      else if (fenceMarker === marker) {
+        fenceMarker = null
+      }
+      continue
+    }
+
+    if (fenceMarker) {
+      continue
+    }
+
+    const trimmedLine = line.trimStart()
+    let depth = 0
+
+    while (trimmedLine[depth] === '#' && depth < 6) {
+      depth += 1
+    }
+
+    if (depth === 0 || ![' ', '\t'].includes(trimmedLine[depth])) {
+      continue
+    }
+
+    let text = trimmedLine.slice(depth).trim()
+    let closingHashStart = text.length
+
+    while (text[closingHashStart - 1] === '#') {
+      closingHashStart -= 1
+    }
+
+    if (closingHashStart < text.length && [' ', '\t'].includes(text[closingHashStart - 1])) {
+      text = text.slice(0, closingHashStart).trimEnd()
+    }
+
+    if (text) {
+      headingTexts.push(text)
+    }
+  }
+
+  return headingTexts
+}
+
+const { headings = [], body = '' } = Astro.props
+const markdownHeadingTexts = getMarkdownHeadingTexts(body)
 const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth: 6 })
-  .map(heading => ({
-    ...heading,
-    displayText: getHeadingDisplayText(heading.text, heading.number),
-  }))
+  .map((heading, index) => {
+    const displayText = getHeadingDisplayText(markdownHeadingTexts[index] ?? heading.text, heading.number)
+
+    return {
+      ...heading,
+      displayHtml: renderMarkdownWithMath(displayText),
+    }
+  })
   .filter(heading => heading.depth >= 2 && heading.depth <= 4)
 ---
 
@@ -98,7 +156,7 @@ const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth:
                 ]}
               >
                 {heading.number && <span class="toc-heading-number">{heading.number}.</span>}
-                {heading.displayText}
+                <span set:html={heading.displayHtml} />
               </a>
             </li>
           ))}

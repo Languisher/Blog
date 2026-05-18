@@ -21,7 +21,6 @@ abbrlink: nano-vllm-sequence
 
 ![](Attachments/Sequence.png)
 
-
 `Sequence` 类实例的创建 API：
 
 ```python

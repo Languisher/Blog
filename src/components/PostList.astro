@@ -15,17 +15,110 @@ export interface Props {
 
 const { posts, lang, pinned = false } = Astro.props
 const isHome = isHomePage(Astro.url.pathname)
+
+function getDateParts(date: Date) {
+  const month = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(date)
+
+  return {
+    day: date.toISOString().slice(8, 10),
+    month,
+  }
+}
 ---
 
 <ul>
   {posts.map((post) => {
     const slug = post.data.abbrlink || post.id
+    const hasDescription = post.data.description.trim().length > 0
+      || (!post.data.description && (post.body ?? '').trim().length > 0)
+    const { day, month } = getDateParts(post.data.published)
+
+    if (isHome) {
+      return (
+        <li class:list={['mb-7', 'lg:mb-9']}>
+          <article class="flex items-start gap-3.5 lg:gap-4">
+            <a
+              href={getPostPath(slug, lang)}
+              class="mt-0.5 block w-12 shrink-0 overflow-hidden rounded-1 bg-tip text-center c-background shadow-sm lg:w-13"
+              aria-label={post.data.title}
+              transition:name={`date-card-${slug}${lang ? `-${lang}` : ''}`}
+              data-disable-theme-toggle-transition
+            >
+              <span class="block pt-1.25 text-6 font-700 leading-5.5 font-time lg:text-6.5 lg:leading-6">
+                {day}
+              </span>
+              <span class="block pb-1 text-3.7 font-700 leading-4 lg:text-4">
+                {month}
+              </span>
+            </a>
+
+            <div class="min-w-0 flex-1">
+              <h3 class="m-0 text-4.8 font-medium leading-snug transition-colors lg:text-5.4 hover:c-primary cjk:tracking-wide">
+                <a
+                  href={getPostPath(slug, lang)}
+                  transition:name={`post-${slug}${lang ? `-${lang}` : ''}`}
+                  data-disable-theme-toggle-transition
+                >
+                  {post.data.title}
+                </a>
+                {pinned && (
+                  <PinIcon
+                    aria-hidden="true"
+                    class="ml-0.25em inline-block aspect-square w-0.92em translate-y--0.1em lg:(w-1em translate-y--0.15em)"
+                    fill="currentColor"
+                  />
+                )}
+              </h3>
+
+              <div
+                class="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.75 text-3.45 c-secondary/75 lg:text-3.75"
+                transition:name={`time-${slug}${lang ? `-${lang}` : ''}`}
+                data-disable-theme-toggle-transition
+              >
+                <span class="font-time">
+                  <PostDate
+                    date={post.data.published}
+                    minutes={post.remarkPluginFrontmatter.minutes}
+                    showReadingTime={false}
+                  />
+                </span>
+                <span aria-hidden="true" class="c-secondary/45">|</span>
+                <span class="font-time">
+                  {post.remarkPluginFrontmatter.minutes} min
+                </span>
+                {post.data.tags?.length > 0 && (
+                  <>
+                    <span aria-hidden="true" class="c-secondary/45">|</span>
+                    {post.data.tags.map(tag => (
+                      <a
+                        href={getTagPath(tag, lang)}
+                        class="c-tip font-medium transition-colors ease-out hover:c-primary"
+                      >
+                        {tag}
+                      </a>
+                    ))}
+                  </>
+                )}
+              </div>
+
+              {hasDescription && (
+                <div class="heti mt-2 text-3.5 c-secondary/72 leading-6.5 lg:text-3.6 lg:leading-6.75">
+                  <p set:html={renderPostDescriptionHtml(post)} />
+                </div>
+              )}
+            </div>
+          </article>
+        </li>
+      )
+    }
 
     return (
       <li
         class:list={[
           'mb-5.5',
-          isHome ? 'lg:mb-10' : '',
         ]}
       >
         {/* post title */}
@@ -102,7 +195,7 @@ const isHome = isHomePage(Astro.url.pathname)
         </div>
 
         {/* desktop post description */}
-        {isHome && (
+        {isHome && hasDescription && (
           <div
             class="heti hidden text-3.5 c-secondary/72"
             lg="mt-2.25 block"

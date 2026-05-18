@@ -64,6 +64,10 @@ abbrlink: llm-infra
 - 长短请求混部
 - Admission control / priority
 
+## Kernel 优化
+
+- [CUDA Graph：合并多个算子](CUDA%20Graph：合并多个算子.md)
+
 ## Serving 架构
 
 - Offline vs Online inference
@@ -74,6 +78,7 @@ abbrlink: llm-infra
 - Multi-model / Multi-LoRA serving
 
 ## MoE 系统优化
+
 - Router
 - Top-k gating
 - Expert Parallelism

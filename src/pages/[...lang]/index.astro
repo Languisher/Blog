@@ -1,6 +1,6 @@
 ---
 import PostList from '@/components/PostList.astro'
-import { allLocales } from '@/config'
+import { allLocales, themeConfig } from '@/config'
 import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
 import Layout from '@/layouts/Layout.astro'
 import { getPinnedPosts, getPostsByYear } from '@/utils/content'
@@ -14,9 +14,30 @@ export async function getStaticPaths() {
 const currentLang = getLangFromLocale(Astro.currentLocale)
 const pinnedPosts = await getPinnedPosts(currentLang)
 const postsByYear = await getPostsByYear(currentLang)
+const homeIntroConfig = themeConfig.homeIntro
+const homeIntro = homeIntroConfig?.translations?.[currentLang] ?? homeIntroConfig
+const shouldShowHomeIntro = Boolean(
+  homeIntroConfig?.enabled && (homeIntro?.title.trim() || homeIntro?.description.trim()),
+)
 ---
 
 <Layout>
+  <!-- Homepage Intro -->
+  {shouldShowHomeIntro && homeIntro && (
+    <section class="mb-8 lg:mb-10">
+      {homeIntro.title.trim() && (
+        <h1 class="mb-3 text-6.5 c-primary font-medium leading-tight lg:text-7.5">
+          {homeIntro.title}
+        </h1>
+      )}
+      {homeIntro.description.trim() && (
+        <p class="m-0 whitespace-pre-line text-3.9 c-secondary/85 leading-7 lg:text-4.1 lg:leading-7.5">
+          {homeIntro.description}
+        </p>
+      )}
+    </section>
+  )}
+
   <!-- Pinned Posts -->
   {pinnedPosts.length > 0 && (
     <section class="mb-7.5">

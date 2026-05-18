@@ -233,8 +233,6 @@ set_context(False, slot_mapping=slot_mapping, context_lens=context_lens, block_t
 
 设置 attention 上下文。和 prefill 不同，decode 不需要 `cu_seqlens_q` 和 `cu_seqlens_k`，因为每个请求只有一个 query token；它更关心的是 `context_lens` 和 `block_tables`，也就是如何从 KV Cache 中找到完整历史上下文。
 
-
-
 ## run_model：普通前向和 CUDA Graph replay
 
 准备完输入后，`ModelRunner` 会进入 `run_model()`。如果当前是 prefill，或者强制 eager，或者输入 token 数太大，那么代码直接走普通 eager 前向：

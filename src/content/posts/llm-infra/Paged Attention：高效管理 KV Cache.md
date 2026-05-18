@@ -13,7 +13,6 @@ abbrlink: paged-attention
 ---
 > TBD：未来将会增加更多细节
 
-
 > [!note]
 > **Paged Attention** 使用类似虚拟内存分页的管理方式，使得 KV Cache 可以按需分配与回收，从而有效降低显存碎片化并提高内存利用率。
 

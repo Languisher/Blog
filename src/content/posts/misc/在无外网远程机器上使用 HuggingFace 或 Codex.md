@@ -36,7 +36,6 @@ remote server
 Internet
 ```
 
-
 假设我能够通过 `ssh remoteMachine` 来连接到我的远程服务器。
 
 **第一步：在本地启动 SOCKS5 代理**。首先在我的本地电脑上配置：在本地启动一个 SOCKS5 代理服务器，监听 1080 端口。之后，任何发送到这个端口的请求，都会由本地机器代为访问互联网。
@@ -58,8 +57,8 @@ ssh -N -R 127.0.0.1:1080:127.0.0.1:1080 remoteMachine
 
 ```
 // 写入 ~/.zshrc 或者 ~/.bashrc
-export ALL_PROXY=socks5h://127.0.0.1:1080  
-export HTTPS_PROXY=socks5h://127.0.0.1:1080  
+export ALL_PROXY=socks5h://127.0.0.1:1080
+export HTTPS_PROXY=socks5h://127.0.0.1:1080
 export HTTP_PROXY=socks5h://127.0.0.1:1080
 ```
 
@@ -74,7 +73,6 @@ export HTTP_PROXY=socks5h://127.0.0.1:1080
 可以使用这个脚本完成认证信息迁移：
 https://github.com/chuvadenovembro/script-to-use-codex-cli-on-remote-server-without-visual-environment
 
-  
 假设可以通过 `ssh remoteMachine` 连接远程服务器，操作流程如下：
 
 ```sh

@@ -91,7 +91,6 @@ for (int j = kv_begin; j < kv_end; ++j) {
 
 在 vLLM V1 中，这一过程进一步工程化。系统不会显式构造 attention mask，也通常不会让 CUDA thread 在 kernel 内部通过全局 token index 动态查找 request。相反，scheduler 会提前构造 attention metadata，例如 `query_start_loc`、`seq_lens`、`slot_mapping` 和 `block_table`。Attention backend 将这些 metadata 传给 FlashAttention / PagedAttention kernel。kernel 的 grid 或 scheduler metadata 已经将计算任务划分为某个 request 的某个 query tile / KV tile，因此 kernel 只需要根据 `query_start_loc` 和 `seq_lens` 确定 query/KV 边界，再通过 `block_table` 将逻辑 KV 位置映射到物理 KV cache block。这样，block-diagonal causal mask 不再是一个真实存在的矩阵，而是被转化为 kernel 内部的边界检查和 KV cache 地址映射。
 
-
 ```cpp
 // 简化理解：一个 CUDA Kernel Block 对应一个请求（或者请求的一个 tile）
 int req_id = blockIdx.x;
@@ -117,7 +116,7 @@ for (int kv_pos = 0; kv_pos <= max_kv_pos; ++kv_pos) {
     // 逻辑 KV 位置 kv_pos
     // 如果没有 paged cache：直接 K[request_offset + kv_pos]
     // 如果有 paged cache：通过 block_table 找物理 KV block
-    
+
     // kv_pos 是 request 内部的逻辑位置
     int logical_block = kv_pos / BLOCK_SIZE;
     int block_offset  = kv_pos % BLOCK_SIZE;
@@ -129,7 +128,6 @@ for (int kv_pos = 0; kv_pos <= max_kv_pos; ++kv_pos) {
     V = v_cache[physical_block][block_offset];
 }
 ```
-
 
 假设 $C=[c_{0}, c_{1},c_{2}]$ 的 block_table 对应 `[7, 18]`, 且 BLOCK_SIZE = 2.
 

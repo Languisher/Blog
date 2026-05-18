@@ -17,9 +17,9 @@ Punica 将 Multi-LoRA 推理中按请求执行的 for-loop 重写为分段聚合
 
 ## Multi-LoRA 问题
 
-在 [LoRA 和 Multi-LoRA：模型参数微调](../llm/LoRA%20和%20Multi-LoRA：模型参数微调.md) 中，我们将 Multi-LoRA 推理形式化为：  
-$$  
-h = Wx, \quad W = W_0 + \sum_i \alpha_i \Delta W_i  
+在 [LoRA 和 Multi-LoRA：模型参数微调](../llm/LoRA%20和%20Multi-LoRA：模型参数微调.md) 中，我们将 Multi-LoRA 推理形式化为：
+$$
+h = Wx, \quad W = W_0 + \sum_i \alpha_i \Delta W_i
 $$
 然而在实际推理中，这一表达需要细化到 **token 级别**：对于 batch 中的每个输入 $x_j$，其对应的 LoRA Adapter（即 $\{\alpha_i^{(j)}, \Delta W_i\}_i$）可能不同。因此，不同 token 实际使用的权重扰动是不同的，这使得原本可以统一表示的矩阵乘法退化为一组“每个样本使用不同权重”的不规则计算。
 
@@ -35,7 +35,6 @@ for token_j in x:
 
 For-loop 会导致大量小规模矩阵向量乘法与 kernel 调度开销，严重影响 GPU 利用率。
 
-
 ## Punica
 
 Punica 将这种逐 token / 逐 adapter 的不规则计算重新组织为一个 fused segmented GEMV（SGMV）操作。
@@ -49,6 +48,5 @@ h_j = B_{\ell_j}(A_{\ell_j} x_j)
 $$
 - 和统一的 GEMV 的区别：不同 token 对应的参数不同，需要在 runtime 动态推导对应参数
 - 在每次 kernel 调用中，并不会对 $A_l, B_l$ 进行显式的重排或组合，而是根据每个 token 对应的 LoRA adapter id，在计算过程中动态索引并访问对应的参数。
-
 
 该过程在 GPU 内部以 token 为粒度并行执行，从而避免了逐 adapter 的多次 kernel 调度，实现了对不规则计算的高效融合。

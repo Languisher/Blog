@@ -15,7 +15,6 @@ Roofline Model 用于衡量一个运算 / kernel 在特定计算平台（例如 
 
 ## 计算平台指标
 
-
 **FLOPs** 和 **FLOP/s (FLOPS)** 定义。为了避免混淆，我们先对这两个变量进行定义：
 - **FLOPs（Floating Point Operations）** 表示**浮点运算的总数量**，是一个“工作量”的概念。例如，一个矩阵乘法需要执行多少次乘加操作，这个总次数就是 FLOPs。
 - **FLOP/s（或 FLOPS）** 表示**每秒可以执行多少次浮点运算**，是一个“速度”或“吞吐”的概念。它描述的是“硬件一秒钟能做多少计算”
@@ -48,7 +47,6 @@ Roofline 模型希望回答：
 - 两者结合在一起即为在访存限制下系统每秒最多能够支撑的计算量
 
 ![带宽决定了每秒能拿到多少数据，算术强度决定每单位数据需要执行多少运算，两者乘法即带宽所能支撑的最大计算能力，但最终还是受到算力上限的限制。](Attachments/Roofline-Model.png)
-
 
 因此：一个运算的实际性能上限应当是计算能力和访存能力两者中的较小值
 $$
@@ -83,11 +81,11 @@ $$
 $$
 \begin{cases}
 m_{\text{GEMV}} &=(n+np+p) \times 2, \\
-c_{\text{GEMV}} &= 2np 
+c_{\text{GEMV}} &= 2np
 \end{cases}, \quad
 \begin{cases}
 m_{\text{GEMM}} &= (mn+np+mp)\times {2}, \\
-c_{\text{GEMM}} &= 2mnp 
+c_{\text{GEMM}} &= 2mnp
 \end{cases}
 $$
 
@@ -95,7 +93,7 @@ $$
 $$
 \begin{cases}
 	I_{\text{GEMV}} &= \frac{np}{n+np+p} = \frac{1}{1+ \left( \frac{1}{p}+\frac{1}{n} \right)} \approx 1 \\
-	I_{\text{GEMM}} &= \frac{mnp}{mn+np+mp} 
+	I_{\text{GEMM}} &= \frac{mnp}{mn+np+mp}
 \end{cases}
 $$
 

@@ -26,6 +26,18 @@ const excerptLengths: Record<ExcerptScene, { cjk: number, other: number }> = {
   },
 }
 
+function getExcerptLength(scene: ExcerptScene, lang: Language) {
+  const isCJK = (lang: Language) => ['zh', 'zh-tw', 'ja', 'ko'].includes(lang)
+  const configuredListLength = themeConfig.homePostList?.excerptLength
+  const sceneLength = scene === 'list' && configuredListLength
+    ? configuredListLength
+    : excerptLengths[scene]
+
+  return isCJK(lang)
+    ? sceneLength.cjk
+    : sceneLength.other
+}
+
 const htmlEntityMap: Record<string, string> = {
   '&lt;': '<',
   '&gt;': '>',
@@ -35,7 +47,7 @@ const htmlEntityMap: Record<string, string> = {
   '&nbsp;': ' ',
 }
 
-function renderMarkdownWithMath(text: string): string {
+export function renderMarkdownWithMath(text: string): string {
   const mathSegments: string[] = []
   const protectedText = text.replace(
     /\$\$([\s\S]+?)\$\$|\$((?:\\.|[^$\n])+)\$/g,
@@ -65,10 +77,7 @@ function renderMarkdownWithMath(text: string): string {
 
 // Creates a clean text excerpt with length limits by language and scene
 function getExcerpt(text: string, lang: Language, scene: ExcerptScene): string {
-  const isCJK = (lang: Language) => ['zh', 'zh-tw', 'ja', 'ko'].includes(lang)
-  const length = isCJK(lang)
-    ? excerptLengths[scene].cjk
-    : excerptLengths[scene].other
+  const length = getExcerptLength(scene, lang)
 
   // Remove HTML tags
   let cleanText = text.replace(/<[^>]*>/g, '')
@@ -102,7 +111,7 @@ export function getPostDescription(
   const lang = (post.data.lang || defaultLocale) as Language
 
   if (post.data.description) {
-    // Only truncate for og scene, return full description for other scenes
+    // Keep authored descriptions intact on the homepage; truncate only generated previews and OG text.
     return scene === 'og'
       ? getExcerpt(post.data.description, lang, scene)
       : post.data.description

@@ -33,7 +33,6 @@ $$
 
 ![](Attachments/Ulysses.png)
 
-
 ## 应用
 
 在长序列场景下常优先用 Chunked Prefill 来解决，通常不用 DeepSpeed Ulysses，因为可以避免引入的额外 All-to-All 通信开销。
