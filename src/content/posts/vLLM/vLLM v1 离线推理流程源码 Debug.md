@@ -28,7 +28,7 @@ abbrlink: vllm-system-offline-debug
 
 ![](Attachments/vLLM-v1-Offline-Inference.png)
 
-在离线推理阶段，可以用上图来表示所有组件之间的关系。需要注意的是 LLM 框和 EngineCoreProc 分别画在不同的框里，代表两个组件分别在不同的进程之间运行。正如下文将会看到，两个进程需要进行通信，通过 [Python ZMQ：消息传递库](../parallelism/Python%20ZMQ：消息传递库.md) 实现，以及通过 `input_socket` 和 `output_socket` 进行通信。途中 `CoreEngineProcManager` 指向 `EngineCoreProc` 的箭头表示 `CoreEngineProcManager` 负责维护这个进程的生命周期、上下文管理等。
+在离线推理阶段，可以用上图来表示所有组件之间的关系。需要注意的是 LLM 框和 EngineCoreProc 分别画在不同的框里，代表两个组件分别在不同的进程之间运行。正如下文将会看到，两个进程需要进行通信，通过 [Python ZMQ：消息传递库](../parallelism/Python%20ZMQ：消息传递库.md) 实现，以及通过 `input_socket` 和 `output_socket` 进行通信。图中 `CoreEngineProcManager` 指向 `EngineCoreProc` 的箭头表示 `CoreEngineProcManager` 负责维护这个进程的生命周期、上下文管理等。
 
 ## 初始化阶段
 
@@ -105,7 +105,7 @@ abbrlink: vllm-system-offline-debug
 这里进入 `launch_core_engines(...)` 函数。
 - 这个函数会创建一个 `CoreEngineProcManager` 对象，专门负责创建一个或多个（在多 DP/TP 等场景下）`EngineCoreProc` 实例、其运行环境配置以及生命周期管理，避免孤儿进程以及 `EngineCoreProc` 意外死亡等
 - 这个函数不属于 `EngineCoreClient (SyncMPClient)`
-- 生成的 `CoreEngineProcManager` 是返回给 `EngineCoreClient (SyncMPClient)` 持有（在后文将看到）。
+- 生成的 `CoreEngineProcManager` 是返回给 `EngineCoreClient (SyncMPClient)` 持有（结合前文第二张图和后文可以看到）。
 
 :::gallery
 ![](Attachments/vLLM-Basics-12.png)
@@ -208,6 +208,27 @@ abbrlink: vllm-system-offline-debug
 
 > 下面段落我让 GPT 帮我标注了一下对应 vLLM GitHub 仓库代码位置，感谢大模型🙏
 
+### 请求提交
+
+```
+LLM.generate(...)
+|--- LLM._run_completion(...)
+     |--- LLM._add_completion_requests(...)
+     |    |--- LLM._render_and_add_requests(...)
+     |         |--- LLM._add_request(...)
+     |              |--- LLMEngine.add_request(...)
+     |                   |--- LLMEngine.input_processor.process_inputs(...)
+     |                   |    |--- return EngineCoreRequest
+     |                   |
+     |                   |--- LLMEngine.output_processor.add_request(...)
+     |                   |    |--- 在主进程登记 request 状态
+     |                   |
+     |                   |--- LLMEngine.engine_core.add_request(...)
+     |                        |--- SyncMPClient.add_request(...)
+     |                             |--- SyncMPClient._send_input(...)
+     |                                  |--- SyncMPClient.input_socket.send_multipart(...)
+```
+
 1. 在 [`LLM.generate(...)`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/entrypoints/llm.py#L425-L493) 时会调用 [`LLM._run_completion(...)`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/entrypoints/llm.py#L1064-L1085)
    - 因此会调用 [`LLM._add_completion_requests(...)`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/entrypoints/llm.py#L1017-L1062) 和 [`LLM._run_engine(...)`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/entrypoints/llm.py#L1258-L1318)
    - 先看 [`LLM._add_completion_requests(...)`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/entrypoints/llm.py#L1017-L1062)，会先调用 [`LLM._render_and_add_requests(...)`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/entrypoints/llm.py#L1213-L1237)
@@ -237,6 +258,33 @@ abbrlink: vllm-system-offline-debug
 
    这里真正发生跨进程通信。请求会被编码成 multipart message，里面包含目标 EngineCore identity、请求类型以及序列化后的请求内容。对于主进程来说，到这一步它已经把任务“投递”出去了；真正的调度、KV Cache 管理、模型 forward 都发生在另一侧的 `EngineCoreProc` 中。
 
+### 后端执行
+
+```
+EngineCoreProc.process_input_sockets(...)
+|--- socket.recv_multipart(...)
+|--- deserialize request
+|--- EngineCoreProc.input_queue.put_nowait((request_type, request))
+
+EngineCoreProc.run_busy_loop(...)
+|--- EngineCoreProc._process_input_queue()
+|    |--- EngineCoreProc._handle_client_request(...)
+|         |--- EngineCoreProc.add_request(...)
+|              |--- EngineCore.scheduler.add_request(...)
+|
+|--- EngineCoreProc._process_engine_step()
+     |--- EngineCore.step()
+          |--- Scheduler.schedule()
+          |    |--- 生成本轮 SchedulerOutput
+          |
+          |--- model_executor.execute_model(...)
+          |    |--- 执行本轮模型 forward
+          |
+          |--- 生成 EngineCoreOutputs
+          |
+		  |--- output_queue.put_nowait(outputs)
+```
+
 7. 现在我们进入了 [`EngineCoreProc`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/v1/engine/core.py#L796-L909) 进程。`EngineCoreProc` 包含了三个线程：[`process_input_sockets()`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/v1/engine/core.py#L1396-L1489), [`process_output_sockets()`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/v1/engine/core.py#L1491-L1562) 和 [`run_busy_loop()`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/v1/engine/core.py#L1174-L1179)。首先由 [`process_input_sockets()`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/v1/engine/core.py#L1396-L1489) 读取来自 `input_sockets` 的数据写入 `input_queue`: [`EngineCoreProc.input_queue.put_nowait((request_type, request))`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/v1/engine/core.py#L1487-L1489)[^4]
 
    `process_input_sockets()` 是一个专门负责 IO 的线程。它并不直接调度请求，而是把 socket 中收到的请求解码之后放入 `input_queue`。这样设计的好处是：ZMQ IO、反序列化、请求预处理和真正的调度执行可以解耦，避免模型执行主循环被 socket IO 细节阻塞。
@@ -255,9 +303,45 @@ abbrlink: vllm-system-offline-debug
 
    这一步是真正的推理执行阶段。`scheduler.schedule()` 会根据当前所有 waiting/running requests、KV Cache 状态、token budget 等信息生成本轮的 `SchedulerOutput`。随后 `model_executor.execute_model(...)` 根据 scheduler 给出的 batch 执行模型 forward。换句话说，scheduler 决定这一轮算什么，model executor 负责“真正把这一轮算出来。
 
+
 10. [`EngineCoreProc._process_engine_step()`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/v1/engine/core.py#L1210-L1229) 的末尾会执行 [`EngineCoreProc.output_queue.put_nowait(...)`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/v1/engine/core.py#L1214-L1217)，放入 `output_queue`
 
    模型执行结束后，scheduler 会根据模型输出更新每个请求的状态，例如生成了哪些 token、哪些请求已经 finished、哪些请求仍然需要继续 decode。随后这些结果会被包装成 `EngineCoreOutputs`，放入 `output_queue`，等待输出线程发回主进程。
+
+### 结果回收
+
+```
+EngineCoreProc.process_output_sockets(...)
+|--- EngineCoreProc.output_queue.get()
+|--- socket.send_multipart(...)
+
+SyncMPClient.process_outputs_socket(...)
+|--- output_socket.recv_multipart(...)
+|--- deserialize EngineCoreOutputs
+|--- SyncMPClient.outputs_queue.put_nowait(outputs)
+
+*********************
+
+LLM._run_engine(...)
+|--- while LLMEngine.has_unfinished_requests():
+     |--- LLMEngine.step()
+          |--- LLMEngine.engine_core.get_output()
+          |    |--- SyncMPClient.get_output()
+          |         |--- SyncMPClient.outputs_queue.get()
+          |
+          |--- LLMEngine.output_processor.process_outputs(...)
+          |    |--- detokenization
+          |    |--- stop condition check
+          |    |--- finished request update
+          |    |--- construct RequestOutput
+          |
+          |--- return list[RequestOutput]
+
+LLM._run_engine(...)
+|--- collect outputs
+|--- sort by request_id
+|--- return final outputs
+```
 
 11. 在 [`EngineCoreProc.process_output_sockets()`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/v1/engine/core.py#L1491-L1562) 线程时，当一次推理 step 完成之后会触发 [`output = self.output_queue.get()`](https://github.com/Languisher/vllm-260519/blob/d247a931cc25e7253feccbd6260d48216ff5c081/vllm/v1/engine/core.py#L1529-L1531)（没完成时会阻塞）
 
@@ -290,5 +374,6 @@ abbrlink: vllm-system-offline-debug
 
 ## 参考资料
 
+- [vLLM First SF Meetup Slides (Public)](https://docs.google.com/presentation/d/1QL-XPFXiFpDBh86DbEegFXBXFXjix4v032GhShbKf3s/edit?slide=id.g24ad94a0065_0_189#slide=id.g24ad94a0065_0_189)
 - [图解Vllm V1系列1：整体流程](https://zhuanlan.zhihu.com/p/1900126076279160869)
 - [vLLM v1源码阅读 : 整体流程梳理（详细debug）](https://blog.csdn.net/goodgood_UP/article/details/148114998)
