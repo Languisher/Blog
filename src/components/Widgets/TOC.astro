@@ -1,6 +1,9 @@
 ---
 import type { MarkdownHeading } from 'astro'
+import type { Language } from '@/i18n/config'
+import type { RelatedPosts } from '@/utils/content'
 import TocIcon from '@/assets/icons/toc-icon.svg'
+import { getPostPath } from '@/i18n/path'
 import { ui } from '@/i18n/ui'
 import { renderMarkdownWithMath } from '@/utils/description'
 import { attachHeadingNumbers } from '@/utils/heading-numbering.mjs'
@@ -9,9 +12,11 @@ import { getPageInfo } from '@/utils/page'
 interface Props {
   headings: MarkdownHeading[]
   body?: string
+  relatedPosts?: RelatedPosts
 }
 
 const { currentLang } = getPageInfo(Astro.url.pathname)
+const lang = currentLang as Language
 const currentUI = ui[currentLang as keyof typeof ui] ?? {}
 
 function escapeRegExp(value: string) {
@@ -77,7 +82,7 @@ function getMarkdownHeadingTexts(body: string) {
   return headingTexts
 }
 
-const { headings = [], body = '' } = Astro.props
+const { headings = [], body = '', relatedPosts } = Astro.props
 const markdownHeadingTexts = getMarkdownHeadingTexts(body)
 const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth: 6 })
   .map((heading, index) => {
@@ -89,90 +94,188 @@ const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth:
     }
   })
   .filter(heading => heading.depth >= 2 && heading.depth <= 4)
+
+const hasToc = filteredHeadings.length > 0
+const hasRelatedPosts = Boolean(
+  relatedPosts
+  && (
+    relatedPosts.backlinks.length > 0
+    || relatedPosts.outgoing.length > 0
+    || relatedPosts.tagGroups.length > 0
+  ),
+)
+const labels = currentLang === 'zh' || currentLang === 'zh-tw'
+  ? {
+      related: '相关',
+      backlinks: '反向链接',
+      outgoing: '链接到',
+    }
+  : {
+      related: 'Related',
+      backlinks: 'Backlinks',
+      outgoing: 'Links to',
+    }
+
+function getPostHref(post: RelatedPosts['backlinks'][number]) {
+  const slug = post.data.abbrlink || post.id
+  return getPostPath(slug, lang)
+}
 ---
 
-{filteredHeadings.length > 0 && (
+{(hasToc || hasRelatedPosts) && (
   // TOC Container
   <div
     id="toc-container"
     class="mb-6 uno-round-border bg-secondary/5 lg:(fixed bottom-[var(--toc-bottom-gap,2rem)] right-[max(5rem,calc(50vw-35rem))] top-46 mb-0 w-14rem flex flex-col overflow-hidden border-none bg-secondary/0)"
   >
-    {/* Hidden Checkbox */}
+    {/* Hidden Tabs */}
     <input
-      type="checkbox"
-      id="toc-toggle"
+      type="radio"
+      id="toc-tab-toc"
+      name="toc-tab"
       hidden
+      checked={hasToc}
     />
-    {/* TOC Toggle */}
-    <div class="relative h-12 w-full lg:h-auto">
-      <label
-        for="toc-toggle"
-        class="absolute inset-0 flex cursor-pointer items-center lg:(static flex-col cursor-default items-start gap-2 c-secondary/60)"
-      >
-        {/* Title on Mobile */}
-        <span id="toc-mobile-text">
-          {currentUI.toc}
-        </span>
+    <input
+      type="radio"
+      id="toc-tab-related"
+      name="toc-tab"
+      hidden
+      checked={!hasToc && hasRelatedPosts}
+    />
 
-        {/* Title on Desktop */}
-        <div id="toc-desktop-header">
+    {/* Panel Switcher */}
+    <div id="toc-tab-switcher">
+      {hasToc && (
+        <label
+          for="toc-tab-toc"
+          class="toc-tab-label"
+        >
           <TocIcon
-            id="toc-desktop-icon"
             aria-hidden="true"
             class="aspect-square w-4.2"
             fill="currentColor"
           />
-          <span class="text-sm font-semibold">
-            {currentUI.toc}
-          </span>
-        </div>
-      </label>
+          <span>{currentUI.toc}</span>
+        </label>
+      )}
+      {hasRelatedPosts && (
+        <label
+          for="toc-tab-related"
+          class="toc-tab-label"
+        >
+          <span>{labels.related}</span>
+        </label>
+      )}
     </div>
 
-    {/* Expandable Content Wrapper with Accordion Animation */}
-    <div id="toc-accordion-wrapper">
-      <nav
-        id="toc-accordion-content"
-        aria-label="Table of Contents"
-      >
-        {/* TOC List */}
-        <ul id="toc-links-list">
-          {filteredHeadings.map(heading => (
-            <li
-              data-toc-item={heading.slug}
-              class:list={{
-                'ml-0': heading.depth === 2,
-                'ml-4': heading.depth === 3,
-                'ml-8': heading.depth === 4,
-              }}
-            >
-              <a
-                href={`#${heading.slug}`}
-                data-toc-link={heading.slug}
-                class:list={[
-                  { 'no-heti toc-links-h2': heading.depth === 2 },
-                  { 'no-heti toc-links-h3': heading.depth === 3 },
-                  { 'no-heti toc-links-h4': heading.depth === 4 },
-                ]}
+    <div id="toc-panels">
+      {hasToc && (
+        <nav
+          id="toc-accordion-content"
+          class="toc-panel toc-panel-toc"
+          aria-label="Table of Contents"
+        >
+          {/* TOC List */}
+          <ul id="toc-links-list">
+            {filteredHeadings.map(heading => (
+              <li
+                data-toc-item={heading.slug}
+                class:list={{
+                  'ml-0': heading.depth === 2,
+                  'ml-4': heading.depth === 3,
+                  'ml-8': heading.depth === 4,
+                }}
               >
-                {heading.number && <span class="toc-heading-number">{heading.number}.</span>}
-                <span set:html={heading.displayHtml} />
-              </a>
-            </li>
+                <a
+                  href={`#${heading.slug}`}
+                  data-toc-link={heading.slug}
+                  class:list={[
+                    { 'no-heti toc-links-h2': heading.depth === 2 },
+                    { 'no-heti toc-links-h3': heading.depth === 3 },
+                    { 'no-heti toc-links-h4': heading.depth === 4 },
+                  ]}
+                >
+                  {heading.number && <span class="toc-heading-number">{heading.number}.</span>}
+                  <span set:html={heading.displayHtml} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
+      {hasRelatedPosts && relatedPosts && (
+        <aside
+          id="related-posts-content"
+          class="toc-panel toc-panel-related"
+          aria-label={labels.related}
+        >
+          {relatedPosts.backlinks.length > 0 && (
+            <section class="related-post-section">
+              <h2>{labels.backlinks}</h2>
+              <ul>
+                {relatedPosts.backlinks.map(post => (
+                  <li>
+                    <a href={getPostHref(post)}>{post.data.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {relatedPosts.outgoing.length > 0 && (
+            <section class="related-post-section">
+              <h2>{labels.outgoing}</h2>
+              <ul>
+                {relatedPosts.outgoing.map(post => (
+                  <li>
+                    <a href={getPostHref(post)}>{post.data.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {relatedPosts.tagGroups.map(group => (
+            <section class="related-post-section">
+              <h2>#{group.tag}</h2>
+              <ul>
+                {group.posts.map(post => (
+                  <li>
+                    <a href={getPostHref(post)}>{post.data.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ))}
-        </ul>
-      </nav>
+        </aside>
+      )}
     </div>
   </div>
 )}
 
 <!-- Override heti default styles  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> -->
 <style>
-#toc-mobile-text {
-  --at-apply: 'ml-4 font-semibold lg:hidden';
+#toc-tab-switcher {
+  --at-apply: 'grid w-full grid-cols-[repeat(auto-fit,minmax(0,1fr))] gap-1 p-1 lg:(mb-3 p-0)';
 }
-#toc-desktop-header {
-  --at-apply: 'hidden lg:flex items-center gap-2';
+.toc-tab-label {
+  --at-apply: 'min-w-0 flex cursor-pointer items-center justify-center gap-1.8 rounded-md px-2 py-2 text-3.4 leading-none font-semibold c-secondary/72 transition-colors lg:(justify-start px-0 py-0 text-sm c-secondary/60)';
+}
+#toc-tab-toc:checked ~ #toc-tab-switcher label[for="toc-tab-toc"],
+#toc-tab-related:checked ~ #toc-tab-switcher label[for="toc-tab-related"] {
+  --at-apply: 'bg-primary/8 c-primary lg:bg-transparent';
+}
+#toc-panels {
+  --at-apply: 'min-h-0 flex-1';
+}
+.toc-panel {
+  --at-apply: 'hidden';
+}
+#toc-tab-toc:checked ~ #toc-panels .toc-panel-toc,
+#toc-tab-related:checked ~ #toc-panels .toc-panel-related {
+  --at-apply: 'block';
 }
 #toc-links-list {
   --at-apply: 'mb-2 mt-1 list-none pl-0 lg:(mb-0.5 space-y-0.35) space-y-0.8';
@@ -204,40 +307,43 @@ const filteredHeadings = attachHeadingNumbers(headings, { minDepth: 2, maxDepth:
   font-variant-numeric: tabular-nums;
 }
 
-/* Overflow and Scrollbar */
-#toc-toggle:checked ~ #toc-accordion-wrapper #toc-accordion-content {
-  --at-apply: 'overflow-y-auto lg:overflow-y-auto';
-}
 #toc-accordion-content {
-  --at-apply: 'max-h-59 overflow-hidden pl-4 pr-6 lg:(max-h-none h-full min-h-0 pl-0 pr-0 overflow-y-auto scrollbar-hidden)';
+  --at-apply: 'max-h-59 overflow-y-auto px-3 pb-3 lg:(max-h-none h-full min-h-0 px-0 pb-0 overflow-y-auto scrollbar-hidden)';
   scrollbar-width: thin;
   scrollbar-color: oklch(var(--un-preset-theme-colors-secondary) / 0.15) transparent;
 }
 #toc-accordion-content::-webkit-scrollbar {
   --at-apply: 'hidden';
 }
-
-/* Mobile Initial State */
-#toc-accordion-wrapper {
-  --at-apply: 'grid rows-[0fr]';
-  transition: grid-template-rows 0.3s ease-in-out;
-}
-#toc-toggle:checked ~ #toc-accordion-wrapper {
-  --at-apply: 'rows-[1fr]';
-}
-
-/* Desktop Initial State */
-#toc-accordion-wrapper {
-  --at-apply: 'lg:(rows-[1fr] min-h-0 flex-1)';
-}
-#toc-toggle:checked ~ #toc-accordion-wrapper {
-  --at-apply: 'lg:rows-[1fr]';
-}
 #toc-container {
   --toc-bottom-gap: 2rem;
 }
+#related-posts-content {
+  --at-apply: 'max-h-59 overflow-y-auto px-3 pb-3 lg:(max-h-none h-full min-h-0 px-0 pb-0 scrollbar-hidden)';
+  scrollbar-width: thin;
+  scrollbar-color: oklch(var(--un-preset-theme-colors-secondary) / 0.15) transparent;
+}
+#related-posts-content::-webkit-scrollbar {
+  --at-apply: 'hidden';
+}
+.related-post-section {
+  --at-apply: 'mb-4 last:mb-0';
+}
+.related-post-section h2 {
+  --at-apply: 'mb-2.2 border-b border-secondary/12 pb-1.5 text-3.2 leading-none font-semibold c-secondary/62';
+}
+.related-post-section ul {
+  --at-apply: 'm-0 list-none space-y-0.8 p-0';
+}
+.related-post-section li {
+  --at-apply: 'm-0 p-0';
+}
+.related-post-section a {
+  --at-apply: 'block rounded-lg px-2.2 py-1.2 text-balance text-sm leading-1.45em c-secondary/80 no-underline transition-colors hover:(c-primary bg-primary/5) lg:text-3.2';
+}
 </style>
 
+{hasToc && (
 <script>
 const isDesktop = window.matchMedia('(min-width: 1024px)')
 const SETUP_RETRY_LIMIT = 12
@@ -481,3 +587,4 @@ document.addEventListener('astro:after-swap', () => queueSetup())
 document.addEventListener('astro:page-load', () => queueSetup())
 document.addEventListener('astro:before-swap', cleanupAutoScroll)
 </script>
+)}

@@ -4,13 +4,17 @@ published: 2026-05-10T08:46:28.640Z
 description: ""
 updated: ""
 tags:
-  - Game-Theory
+  - 课程笔记
 draft: false
 pin: 0
 toc: true
 lang: ""
 abbrlink: game-theory-gale-shapley
 ---
+博弈论系列文章：
+- [博弈论（1）：Gale-Shapley 稳定匹配机制构造](博弈论（1）：Gale-Shapley%20稳定匹配机制构造.md)
+- [博弈论（2）：标准形博弈](博弈论（2）：标准形博弈.md)
+- [博弈论（3）：纳什均衡](博弈论（3）：纳什均衡.md)
 
 ## 偏好、稳定性与 Gale-Shapley (1962)
 

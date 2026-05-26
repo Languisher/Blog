@@ -1,0 +1,43 @@
+---
+import TaxonomyList from '@/components/TaxonomyList.astro'
+import TagPostTimeline from '@/components/TagPostTimeline.astro'
+import { allLocales } from '@/config'
+import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
+import { getCategoryPath, getLocalizedPath } from '@/i18n/path'
+import Layout from '@/layouts/Layout.astro'
+import { getAllCategoriesWithCount, getPosts } from '@/utils/content'
+
+export async function getStaticPaths() {
+  return allLocales.map(lang => ({
+    params: { lang: getLangRouteParam(lang) },
+  }))
+}
+
+const currentLang = getLangFromLocale(Astro.currentLocale)
+const allCategories = await getAllCategoriesWithCount(currentLang)
+const posts = (await getPosts(currentLang)).filter(post => post.data.category || post.id.includes('/'))
+const categoryItems = allCategories.map(category => ({
+  label: category.name,
+  href: getCategoryPath(category.slug, currentLang),
+  count: category.count,
+  depth: category.depth,
+}))
+---
+
+<Layout>
+  <!-- Decorative Line -->
+  <div class="uno-decorative-line" />
+  <!-- Category List -->
+  <TaxonomyList
+    items={categoryItems}
+    allHref={getLocalizedPath('/categories/', currentLang)}
+  />
+
+  <!-- Posts List -->
+  <div class="mt-10.5">
+    <TagPostTimeline
+      posts={posts}
+      lang={currentLang}
+    />
+  </div>
+</Layout>

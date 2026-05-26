@@ -1,0 +1,294 @@
+---
+import { allLocales } from '@/config'
+import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
+import { getPostPath, getTagPath } from '@/i18n/path'
+import Layout from '@/layouts/Layout.astro'
+import { getPosts, getPostsGroupByTags } from '@/utils/content'
+
+export async function getStaticPaths() {
+  return allLocales.map(lang => ({
+    params: { lang: getLangRouteParam(lang) },
+  }))
+}
+
+const currentLang = getLangFromLocale(Astro.currentLocale)
+const posts = await getPosts(currentLang)
+const tagMap = await getPostsGroupByTags(currentLang)
+
+const searchIndex = posts.map((post) => {
+  const slug = post.data.abbrlink || post.id
+
+  return {
+    title: post.data.title,
+    description: post.data.description,
+    tags: post.data.tags,
+    href: getPostPath(slug, currentLang),
+    date: post.data.published.toISOString().split('T')[0],
+  }
+})
+
+const tagIndex = [...tagMap.entries()].map(([tag, tagPosts]) => ({
+  tag,
+  href: getTagPath(tag, currentLang),
+  count: tagPosts.length,
+  posts: tagPosts.map((post) => {
+    const slug = post.data.abbrlink || post.id
+    return {
+      title: post.data.title,
+      href: getPostPath(slug, currentLang),
+      date: post.data.published.toISOString().split('T')[0],
+    }
+  }),
+}))
+
+const searchPayload = JSON.stringify({ posts: searchIndex, tags: tagIndex }).replace(/</g, '\\u003c')
+const placeholder = currentLang === 'zh' || currentLang === 'zh-tw'
+  ? '搜索标题或标签'
+  : 'Search titles or tags'
+const emptyText = currentLang === 'zh' || currentLang === 'zh-tw'
+  ? '输入关键词开始搜索。'
+  : 'Type to start searching.'
+const noResultText = currentLang === 'zh' || currentLang === 'zh-tw'
+  ? '没有找到匹配结果。'
+  : 'No matching results.'
+const postsLabel = currentLang === 'zh' || currentLang === 'zh-tw' ? '文章' : 'Posts'
+const tagsLabel = currentLang === 'zh' || currentLang === 'zh-tw' ? '标签' : 'Tags'
+---
+
+<Layout>
+  <section
+    class="search-page no-heti"
+    data-empty={emptyText}
+    data-no-result={noResultText}
+    data-posts-label={postsLabel}
+    data-tags-label={tagsLabel}
+  >
+    <label class="search-label mb-3 block c-secondary/78" for="site-search-input">
+      {placeholder}
+    </label>
+    <input
+      id="site-search-input"
+      class="search-input block w-full border border-secondary/28 rounded-1.5 bg-transparent px-4 py-3.2 text-4.2 c-primary outline-none transition-[border-color,box-shadow] focus:(border-secondary/70 shadow-[0_0_0_0.18rem_oklch(var(--un-preset-theme-colors-secondary)/0.14)]) placeholder:c-secondary/45"
+      type="search"
+      autocomplete="off"
+      placeholder={placeholder}
+    />
+
+    <p id="search-status" class="mt-5 min-h-6 text-3.65 c-secondary/72" aria-live="polite">
+      {emptyText}
+    </p>
+
+    <section id="tag-results-wrap" class="mt-7 hidden">
+      <h2 class="mb-4 text-5 c-primary font-bold cjk:tracking-wide">{tagsLabel}</h2>
+      <div id="tag-results" class="grid gap-4" />
+    </section>
+
+    <section id="post-results-wrap" class="mt-8 hidden">
+      <h2 class="mb-4 text-5 c-primary font-bold cjk:tracking-wide">{postsLabel}</h2>
+      <div id="post-results" class="grid gap-5.5" />
+    </section>
+  </section>
+
+  <script type="application/json" id="search-index" is:inline set:html={searchPayload} />
+
+  <script>
+    interface SearchPost {
+      title: string
+      description: string
+      tags: string[]
+      href: string
+      date: string
+    }
+
+    interface SearchTag {
+      tag: string
+      href: string
+      count: number
+      posts: {
+        title: string
+        href: string
+        date: string
+      }[]
+    }
+
+    interface SearchData {
+      posts: SearchPost[]
+      tags: SearchTag[]
+    }
+
+    const indexEl = document.getElementById('search-index')
+    const root = document.querySelector<HTMLElement>('.search-page')
+    const input = document.getElementById('site-search-input') as HTMLInputElement | null
+    const status = document.getElementById('search-status')
+    const postWrap = document.getElementById('post-results-wrap')
+    const tagWrap = document.getElementById('tag-results-wrap')
+    const postResults = document.getElementById('post-results')
+    const tagResults = document.getElementById('tag-results')
+    const data = JSON.parse(indexEl?.textContent ?? '{"posts":[],"tags":[]}') as SearchData
+
+    function normalizeText(value: string) {
+      return value.toLocaleLowerCase().normalize('NFKD').replace(/\p{Diacritic}/gu, '')
+    }
+
+    function compact(value: string) {
+      return normalizeText(value).replace(/\s+/g, '')
+    }
+
+    function isSubsequence(needle: string, haystack: string) {
+      if (!needle) {
+        return false
+      }
+
+      let cursor = 0
+      for (const char of haystack) {
+        if (char === needle[cursor]) {
+          cursor += 1
+          if (cursor === needle.length) {
+            return true
+          }
+        }
+      }
+      return false
+    }
+
+    function scoreMatch(query: string, target: string) {
+      const normalizedQuery = normalizeText(query.trim())
+      const normalizedTarget = normalizeText(target)
+      const compactQuery = compact(query)
+      const compactTarget = compact(target)
+      const words = normalizedQuery.split(/\s+/).filter(Boolean)
+
+      if (!normalizedQuery || !compactQuery) {
+        return 0
+      }
+
+      if (normalizedTarget === normalizedQuery || compactTarget === compactQuery) {
+        return 120
+      }
+      if (normalizedTarget.includes(normalizedQuery) || compactTarget.includes(compactQuery)) {
+        return 90
+      }
+      if (words.length > 1 && words.every(word => normalizedTarget.includes(word))) {
+        return 70
+      }
+      if (compactQuery.length > 1 && isSubsequence(compactQuery, compactTarget)) {
+        return 45
+      }
+
+      return 0
+    }
+
+    function escapeHtml(value: string) {
+      return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+    }
+
+    function makeSnippet(post: SearchPost, query: string) {
+      const source = post.description
+      if (!source) {
+        return ''
+      }
+
+      const normalizedSource = normalizeText(source)
+      const normalizedQuery = normalizeText(query.trim())
+      const hit = normalizedSource.indexOf(normalizedQuery)
+      const start = hit > -1 ? Math.max(0, hit - 48) : 0
+      const snippet = source.slice(start, start + 138).trim()
+      return `${start > 0 ? '...' : ''}${snippet}${source.length > start + 138 ? '...' : ''}`
+    }
+
+    function getPostScore(post: SearchPost, query: string) {
+      const titleScore = scoreMatch(query, post.title) * 4
+      const tagScore = Math.max(0, ...post.tags.map(tag => scoreMatch(query, tag) * 3))
+      return Math.max(titleScore, tagScore)
+    }
+
+    function withReturnTo(href: string) {
+      const url = new URL(href, window.location.origin)
+      url.searchParams.set('returnTo', `${window.location.pathname}${window.location.search}`)
+      return `${url.pathname}${url.search}${url.hash}`
+    }
+
+    function render(query: string) {
+      if (!postResults || !tagResults || !postWrap || !tagWrap || !status || !root) {
+        return
+      }
+
+      const trimmedQuery = query.trim()
+      const emptyText = root.dataset.empty ?? ''
+      const noResultText = root.dataset.noResult ?? ''
+
+      if (!trimmedQuery) {
+        postResults.innerHTML = ''
+        tagResults.innerHTML = ''
+        postWrap.classList.add('hidden')
+        tagWrap.classList.add('hidden')
+        status.textContent = emptyText
+        return
+      }
+
+      const matchedTags = data.tags
+        .map(tag => ({ ...tag, score: scoreMatch(trimmedQuery, tag.tag) }))
+        .filter(tag => tag.score > 0)
+        .sort((a, b) => b.score - a.score || b.count - a.count)
+
+      const matchedPosts = data.posts
+        .map(post => ({ ...post, score: getPostScore(post, trimmedQuery) }))
+        .filter(post => post.score > 0)
+        .sort((a, b) => b.score - a.score || b.date.localeCompare(a.date))
+
+      tagResults.innerHTML = matchedTags.map(tag => `
+        <article class="search-result border border-secondary/18 rounded-1.5 px-4 py-3.5">
+          <a class="text-4.4 font-bold c-primary transition-colors hover:c-tip" href="${escapeHtml(tag.href)}">#${escapeHtml(tag.tag)}</a>
+          <span class="ml-2 text-3.5 c-secondary/70">${tag.count}</span>
+          <div class="mt-2.5 flex flex-wrap gap-x-3 gap-y-1.5 text-3.55">
+            ${tag.posts.map(post => `<a class="c-secondary/82 transition-colors hover:c-primary" href="${escapeHtml(withReturnTo(post.href))}">${escapeHtml(post.title)}</a>`).join('')}
+          </div>
+        </article>
+      `).join('')
+
+      postResults.innerHTML = matchedPosts.map(post => `
+        <article class="search-result border-0 border-b border-secondary/20 border-dashed pb-5">
+          <div class="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-3.45 c-secondary/72">
+            <time datetime="${post.date}">${post.date}</time>
+            ${post.tags.map(tag => `<span>#${escapeHtml(tag)}</span>`).join('')}
+          </div>
+          <h3 class="m-0 text-4.8 font-medium leading-snug cjk:tracking-wide">
+            <a class="transition-colors hover:c-primary" href="${escapeHtml(withReturnTo(post.href))}">${escapeHtml(post.title)}</a>
+          </h3>
+          ${post.description ? `<p class="mt-2 text-3.6 leading-6.8 c-secondary/76">${escapeHtml(makeSnippet(post, trimmedQuery))}</p>` : ''}
+        </article>
+      `).join('')
+
+      tagWrap.classList.toggle('hidden', matchedTags.length === 0)
+      postWrap.classList.toggle('hidden', matchedPosts.length === 0)
+      const postsLabel = root.dataset.postsLabel ?? 'Posts'
+      const tagsLabel = root.dataset.tagsLabel ?? 'Tags'
+      status.textContent = matchedTags.length || matchedPosts.length
+        ? `${matchedPosts.length} ${postsLabel}, ${matchedTags.length} ${tagsLabel}`
+        : noResultText
+    }
+
+    if (input) {
+      const params = new URLSearchParams(window.location.search)
+      input.value = params.get('q') ?? ''
+      render(input.value)
+
+      input.addEventListener('input', () => {
+        const url = new URL(window.location.href)
+        if (input.value.trim()) {
+          url.searchParams.set('q', input.value.trim())
+        }
+        else {
+          url.searchParams.delete('q')
+        }
+        window.history.replaceState(null, '', url)
+        render(input.value)
+      })
+    }
+  </script>
+</Layout>

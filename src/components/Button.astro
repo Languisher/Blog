@@ -1,17 +1,20 @@
 ---
+import SearchIcon from '@/assets/icons/search-icon.svg'
 import ThemeToggleIcon from '@/assets/icons/theme-toggle.svg'
 import { themeConfig } from '@/config'
+import { getPageInfo } from '@/utils/page'
 
 const {
   light: { background: lightMode },
   dark: { background: darkMode },
 } = themeConfig.color
+const { getLocalizedPath, isSearch } = getPageInfo(Astro.url.pathname)
 ---
 
 <div
   id="floating-actions"
   class:list={[
-  'absolute right-7.25vw top-14.6 flex min-[823px]:max-lg:right-[calc(50vw-22rem)]',
+  'absolute right-7.25vw top-14.6 flex items-center gap-3 min-[823px]:max-lg:right-[calc(50vw-22rem)]',
   'lg:(fixed bottom-[min(10.27rem+1.92vw,12rem)] right-[max(5rem,calc(50vw-35rem))] top-auto w-14rem)',
 ]}
 >
@@ -28,6 +31,22 @@ const {
       fill="currentColor"
     />
   </button>
+
+  <!-- Search -->
+  <a
+    id="search-button"
+    class:list={[
+      'block aspect-square w-4 c-secondary transition-colors active:scale-90 hover:c-primary',
+      isSearch ? 'c-primary' : '',
+    ]}
+    href={getLocalizedPath('/search/')}
+    aria-label="Search posts"
+  >
+    <SearchIcon
+      aria-hidden="true"
+      fill="currentColor"
+    />
+  </a>
 </div>
 
 <!-- Theme Toggle Script >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> -->

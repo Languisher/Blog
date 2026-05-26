@@ -15,19 +15,17 @@ abbrlink: cpp-apis
 
 ## String
 
-![std::string interface overview cheat sheet](https://hackingcpp.com/cpp/std/string_crop.png "click for fullscreen view")
+[std::string interface overview cheat sheet](https://hackingcpp.com/cpp/std/string_crop.png "click for fullscreen view")
 ## STL
 
 ### Sequence Containers
 
-![standard library sequence containers overview](https://hackingcpp.com/cpp/std/sequence_containers_crop.png "click for fullscreen view")
+[standard library sequence containers overview](https://hackingcpp.com/cpp/std/sequence_containers_crop.png "click for fullscreen view")
 
-![std::vector interface visual overview](https://hackingcpp.com/cpp/std/vector_crop.png "click for fullscreen view")
+[std::vector interface visual overview](https://hackingcpp.com/cpp/std/vector_crop.png "click for fullscreen view")
 
 ### Associative Containers
 
-![standard library associative containers overview](https://hackingcpp.com/cpp/std/associative_containers_crop.png "click for fullscreen view")
+[standard library associative containers overview](https://hackingcpp.com/cpp/std/associative_containers_crop.png "click for fullscreen view")
 
-![std::unordered_map / std::unordered_multimap interface visual overview](https://hackingcpp.com/cpp/std/unordered_map_crop.png "click for fullscreen view")
-
-> 请进入源网站查看更详细解释
+[std::unordered_map / std::unordered_multimap interface visual overview](https://hackingcpp.com/cpp/std/unordered_map_crop.png "click for fullscreen view")

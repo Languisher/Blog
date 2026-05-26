@@ -1,5 +1,5 @@
 ---
-import GoBackIcon from '@/assets/icons/go-back.svg';
+import GoBackIcon from '@/assets/icons/go-back.svg'
 ---
 
 <button
@@ -23,6 +23,12 @@ function handleBackButtonClick(e: MouseEvent) {
   }
 
   if (!e.target.closest('#back-button')) {
+    return
+  }
+
+  const returnTo = new URLSearchParams(window.location.search).get('returnTo')
+  if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+    window.location.href = returnTo
     return
   }
 

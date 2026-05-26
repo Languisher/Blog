@@ -1,59 +1,35 @@
 ---
 import type { Language } from '@/i18n/config'
+import TaxonomyList from '@/components/TaxonomyList.astro'
 import { getLocalizedPath, getTagPath } from '@/i18n/path'
 
 interface Props {
-  tags: string[]
+  tags: string[] | {
+    name: string
+    count: number
+  }[]
   currentTag?: string
   lang: Language
 }
 
 const { tags, currentTag = '', lang } = Astro.props
 const allTagsPath = getLocalizedPath('/tags/', lang)
+
+const tagItems = tags.map((tag) => {
+  const name = typeof tag === 'string' ? tag : tag.name
+  const count = typeof tag === 'string' ? 1 : tag.count
+
+  return {
+    label: `#${name}`,
+    href: currentTag === name ? allTagsPath : getTagPath(name, lang),
+    count,
+    active: currentTag === name,
+  }
+})
 ---
 
-<div class="no-heti flex flex-wrap gap-x-3 gap-y-3.2">
-  <a
-    href={allTagsPath}
-    class:list={[
-      'relative inline-block border border-secondary/25 rounded-full px-3.2 py-0.7 ring-secondary/80',
-      'transition-[colors,box-shadow] ease-out hover:(border-secondary/80 c-primary font-medium ring-0.2)',
-      currentTag === ''
-        ? 'border-secondary/80 c-primary font-medium ring-0.2'
-        : 'ring-0',
-    ]}
-  >
-    <span class="absolute inset-0 flex items-center justify-center whitespace-nowrap transition-font-weight">
-      All
-    </span>
-    <span
-      class="inline-block font-medium opacity-0"
-      aria-hidden="true"
-    >
-      All
-    </span>
-  </a>
-
-  {tags.map(tag => (
-    <a
-      href={currentTag === tag ? allTagsPath : getTagPath(tag, lang)}
-      class:list={[
-        'relative inline-block border border-secondary/25 rounded-full px-3.2 py-0.7 ring-secondary/80',
-        'transition-[colors,box-shadow] ease-out hover:(border-secondary/80 c-primary font-medium ring-0.2)',
-        currentTag === tag
-          ? 'border-secondary/80 c-primary font-medium ring-0.2'
-          : 'ring-0',
-      ]}
-    >
-      <span class="absolute inset-0 flex items-center justify-center whitespace-nowrap transition-font-weight">
-        {tag}
-      </span>
-      <span
-        class="inline-block font-medium opacity-0"
-        aria-hidden="true"
-      >
-        {tag}
-      </span>
-    </a>
-  ))}
-</div>
+<TaxonomyList
+  items={tagItems}
+  allHref={allTagsPath}
+  currentKey={currentTag}
+/>

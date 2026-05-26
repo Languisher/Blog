@@ -50,13 +50,13 @@ function getDateParts(date: Date) {
               <span class="block pt-1.25 text-6 font-700 leading-5.5 font-time lg:text-6.5 lg:leading-6">
                 {day}
               </span>
-              <span class="block pb-1 text-3.7 font-700 leading-4 lg:text-4">
+              <span class="block pb-1 text-3.2 font-700 leading-3.8 lg:text-3.45">
                 {month}
               </span>
             </a>
 
             <div class="min-w-0 flex-1">
-              <h3 class="m-0 text-4.8 font-medium leading-snug transition-colors lg:text-5.4 hover:c-primary cjk:tracking-wide">
+              <h3 class="m-0 text-4.8 font-semibold leading-snug transition-colors lg:text-5.4 hover:c-primary cjk:tracking-wide">
                 <a
                   href={getPostPath(slug, lang)}
                   transition:name={`post-${slug}${lang ? `-${lang}` : ''}`}
@@ -95,9 +95,9 @@ function getDateParts(date: Date) {
                     {post.data.tags.map(tag => (
                       <a
                         href={getTagPath(tag, lang)}
-                        class="c-tip font-medium transition-colors ease-out hover:c-primary"
+                        class="post-tag-link"
                       >
-                        {tag}
+                        #{tag}
                       </a>
                     ))}
                   </>
@@ -105,7 +105,7 @@ function getDateParts(date: Date) {
               </div>
 
               {hasDescription && (
-                <div class="heti mt-2 text-3.5 c-secondary/72 leading-6.5 lg:text-3.6 lg:leading-6.75">
+                <div class="heti mt-2 text-3.3 c-secondary/72 leading-5 lg:text-3.3 lg:leading-5">
                   <p set:html={renderPostDescriptionHtml(post)} />
                 </div>
               )}
@@ -162,7 +162,7 @@ function getDateParts(date: Date) {
                 {post.data.tags.map(tag => (
                   <a
                     href={getTagPath(tag, lang)}
-                    class="c-secondary/60 transition-colors ease-out hover:c-primary"
+                    class="post-tag-link"
                   >
                     #{tag}
                   </a>
@@ -185,7 +185,7 @@ function getDateParts(date: Date) {
               {post.data.tags.map(tag => (
                 <a
                   href={getTagPath(tag, lang)}
-                  class="c-secondary/60 transition-colors ease-out hover:c-primary"
+                  class="post-tag-link"
                 >
                   #{tag}
                 </a>

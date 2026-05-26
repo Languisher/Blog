@@ -4,7 +4,7 @@ published: 2026-05-24T20:24:04.974Z
 description: ""
 updated: ""
 tags:
-  - Paper-Reading
+  - 论文阅读笔记
 draft: false
 pin: 0
 toc: true
@@ -114,4 +114,4 @@ LLM-Emu：
 
 其他：
 - 论文没有提到多 worker 时间协调，多节点 clock consistency 等等。
-- 代码开源在：https://github.com/AKafakA/llm-emu。且前公开的  LLM-Emu GitHub 仓库里，核心 patch 明确只接到了 `vllm.v1.executor.uniproc_executor`，只默认单机。
+- 代码开源在：https://github.com/AKafakA/llm-emu ，且前公开的  LLM-Emu GitHub 仓库里，核心 patch 明确只接到了 `vllm.v1.executor.uniproc_executor`，只默认单机。

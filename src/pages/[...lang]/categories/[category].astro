@@ -1,0 +1,57 @@
+---
+import TaxonomyList from '@/components/TaxonomyList.astro'
+import TagPostTimeline from '@/components/TagPostTimeline.astro'
+import { allLocales } from '@/config'
+import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
+import { getCategoryPath, getLocalizedPath } from '@/i18n/path'
+import Layout from '@/layouts/Layout.astro'
+import { getAllCategoriesWithCount, getPostsByCategory } from '@/utils/content'
+
+export async function getStaticPaths() {
+  const paths = await Promise.all(allLocales.map(async (lang) => {
+    const categories = await getAllCategoriesWithCount(lang)
+    return categories.map(category => ({
+      params: { lang: getLangRouteParam(lang), category: category.slug },
+      props: { category: category.slug },
+    }))
+  }))
+  return paths.flat()
+}
+
+interface Props {
+  category: string
+}
+
+const { category } = Astro.props
+const currentLang = getLangFromLocale(Astro.currentLocale)
+const posts = await getPostsByCategory(category, currentLang)
+const allCategories = await getAllCategoriesWithCount(currentLang)
+const categoryItems = allCategories.map(item => ({
+  label: item.name,
+  href: item.slug === category
+    ? getLocalizedPath('/categories/', currentLang)
+    : getCategoryPath(item.slug, currentLang),
+  count: item.count,
+  depth: item.depth,
+  active: item.slug === category,
+}))
+---
+
+<Layout>
+  <!-- Decorative Line -->
+  <div class="uno-decorative-line" />
+  <!-- Category List -->
+  <TaxonomyList
+    items={categoryItems}
+    allHref={getLocalizedPath('/categories/', currentLang)}
+    currentKey={category}
+  />
+
+  <!-- Posts List -->
+  <div class="mt-10.5">
+    <TagPostTimeline
+      posts={posts}
+      lang={currentLang}
+    />
+  </div>
+</Layout>

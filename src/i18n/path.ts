@@ -18,6 +18,21 @@ export function getTagPath(tagName: string, lang: Language): string {
 }
 
 /**
+ * Get path to a specific category page with language support
+ *
+ * @param categorySlug Category slug
+ * @param lang Current language code
+ * @returns Path to category page
+ */
+export function getCategoryPath(categorySlug: string, lang: Language): string {
+  const categoryPath = lang === defaultLocale
+    ? `/categories/${categorySlug}/`
+    : `/${lang}/categories/${categorySlug}/`
+
+  return base ? `${base}${categoryPath}` : categoryPath
+}
+
+/**
  * Get path to a specific post page with language support
  *
  * @param slug Post slug

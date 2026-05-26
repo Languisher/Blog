@@ -38,6 +38,14 @@ export function isTagPage(path: string) {
   return matchPageType(path, 'tags')
 }
 
+export function isCategoryPage(path: string) {
+  return matchPageType(path, 'categories')
+}
+
+export function isSearchPage(path: string) {
+  return matchPageType(path, 'search')
+}
+
 export function isAboutPage(path: string) {
   return matchPageType(path, 'about')
 }
@@ -52,6 +60,8 @@ export function getPageInfo(path: string) {
   const isHome = isHomePage(path)
   const isPost = isPostPage(path)
   const isTag = isTagPage(path)
+  const isCategory = isCategoryPage(path)
+  const isSearch = isSearchPage(path)
   const isAbout = isAboutPage(path)
   const isOther = isOtherPage(path)
 
@@ -60,6 +70,8 @@ export function getPageInfo(path: string) {
     isHome,
     isPost,
     isTag,
+    isCategory,
+    isSearch,
     isAbout,
     isOther,
     getLocalizedPath: (targetPath: string) =>

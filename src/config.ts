@@ -90,7 +90,7 @@ export const themeConfig: ThemeConfig = {
     // not fill in the locale code above again, can be an empty array []
     moreLocales: ['en'], // ['de', 'en', 'es', 'fr', 'ja', 'ko', 'pl', 'pt', 'ru', 'zh', 'zh-tw']
     // post font style
-    fontStyle: 'serif', // sans | serif
+    fontStyle: 'sans', // sans | serif
     // post date format
     dateFormat: 'YYYY-MM-DD', // YYYY-MM-DD | MM-DD-YYYY | DD-MM-YYYY | MMM D YYYY | D MMM YYYY
     // enable table of contents

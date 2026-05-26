@@ -9,7 +9,7 @@ import TOC from '@/components/Widgets/TOC.astro'
 import { allLocales } from '@/config'
 import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
 import Layout from '@/layouts/Layout.astro'
-import { checkPostSlugDuplication } from '@/utils/content'
+import { checkPostSlugDuplication, getRelatedPosts } from '@/utils/content'
 import { getPostDescription } from '@/utils/description'
 
 export async function getStaticPaths() {
@@ -45,6 +45,7 @@ const currentLang = getLangFromLocale(Astro.currentLocale)
 const slug = post.data.abbrlink || post.id
 const description = getPostDescription(post, 'meta')
 const { Content, headings, remarkPluginFrontmatter } = await render(post)
+const relatedPosts = await getRelatedPosts(post, currentLang)
 ---
 
 <Layout
@@ -81,7 +82,7 @@ const { Content, headings, remarkPluginFrontmatter } = await render(post)
       />
     </div>
     <!-- TOC -->
-    {post.data.toc && <TOC headings={headings} body={post.body} />}
+    {post.data.toc && <TOC headings={headings} body={post.body} relatedPosts={relatedPosts} />}
     <!-- Content -->
     <div id="post-content">
       <Content />

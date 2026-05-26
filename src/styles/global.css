@@ -15,6 +15,11 @@ body::selection {
   --at-apply: 'bg-highlight';
 }
 
+.post-tag-link {
+  --at-apply: 'inline-block font-medium c-note underline underline-0.075em decoration-note/60 underline-offset-0.18em';
+  --at-apply: 'transition-[color,text-decoration-color] ease-out hover:(c-primary decoration-primary/85)';
+}
+
 /* Highlight Hover Animation >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 .highlight-static,
 .highlight-hover {
