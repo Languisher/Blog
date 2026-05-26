@@ -5,6 +5,7 @@ description: ""
 updated: ""
 tags:
   - CUDA
+category: CUDA
 draft: false
 pin: 0
 toc: true

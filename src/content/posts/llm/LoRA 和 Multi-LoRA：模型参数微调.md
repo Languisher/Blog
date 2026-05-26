@@ -5,6 +5,7 @@ description: LoRA 在原模型权重上 $W$ 引入一个低秩结构的增量项
 updated: ""
 tags:
   - LLM
+category: LLM
 draft: false
 pin: 0
 toc: true

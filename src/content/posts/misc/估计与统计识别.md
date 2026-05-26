@@ -5,6 +5,7 @@ description: ""
 updated: ""
 tags:
   - 课程笔记
+category: 课程笔记
 draft: false
 pin: 0
 toc: true

@@ -5,6 +5,7 @@ description: ""
 updated: ""
 tags:
   - vLLM
+category: vLLM
 draft: false
 pin: 0
 toc: true

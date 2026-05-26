@@ -5,6 +5,7 @@ description: ""
 updated: ""
 tags:
   - 论文阅读笔记
+category: 论文阅读笔记
 draft: false
 pin: 0
 toc: true

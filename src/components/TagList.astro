@@ -20,7 +20,7 @@ const tagItems = tags.map((tag) => {
   const count = typeof tag === 'string' ? 1 : tag.count
 
   return {
-    label: `#${name}`,
+    label: `# ${name}`,
     href: currentTag === name ? allTagsPath : getTagPath(name, lang),
     count,
     active: currentTag === name,

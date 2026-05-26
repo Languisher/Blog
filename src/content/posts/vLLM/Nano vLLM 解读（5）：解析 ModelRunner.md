@@ -6,6 +6,7 @@ updated: ""
 tags:
   - Nano-vLLM
   - LLM-Infra
+category: Nano-vLLM
 draft: false
 pin: 0
 toc: true

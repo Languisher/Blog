@@ -6,6 +6,7 @@ updated: ""
 tags:
   - DataStructure
   - Algorithms
+category: DataStructure
 draft: false
 pin: 0
 toc: true

@@ -18,7 +18,7 @@ const { items, allHref, allLabel = 'All', currentKey = '' } = Astro.props
 const maxCount = Math.max(1, ...items.map(item => item.count))
 
 function getIntensity(count: number) {
-  return 0.08 + (count / maxCount) * 0.18
+  return 0.07 + (count / maxCount) * 0.13
 }
 ---
 
@@ -54,41 +54,36 @@ function getIntensity(count: number) {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    min-height: 2.55rem;
+    min-height: 1.7rem;
     margin-left: calc(var(--taxonomy-depth, 0) * 0.85rem);
-    border: 1px solid oklch(var(--un-preset-theme-colors-secondary) / 0.1);
-    border-bottom-color: oklch(var(--un-preset-theme-colors-secondary) / 0.58);
-    border-bottom-width: 2px;
-    border-radius: 0.32rem;
-    padding: 0.55rem 1.1rem;
-    background:
-      linear-gradient(
-        180deg,
-        oklch(var(--un-preset-theme-colors-note) / var(--taxonomy-intensity, 0.14)),
-        oklch(var(--un-preset-theme-colors-secondary) / calc(var(--taxonomy-intensity, 0.14) * 0.52))
-      );
-    color: oklch(var(--un-preset-theme-colors-secondary) / 0.74);
+    border: 1px solid transparent;
+    border-radius: 0.55rem;
+    padding: 0.42rem 1.08rem;
+    background: oklch(var(--un-preset-theme-colors-secondary) / var(--taxonomy-intensity, 0.12));
+    color: oklch(var(--un-preset-theme-colors-secondary) / 0.86);
     font-weight: 650;
     line-height: 1;
-    box-shadow: inset 0 1px 0 oklch(var(--un-preset-theme-colors-background) / 0.75);
     transition:
       border-color 0.16s ease-out,
       color 0.16s ease-out,
-      transform 0.16s ease-out,
       background-color 0.16s ease-out;
   }
 
-  .taxonomy-button:hover,
+  .taxonomy-button:hover {
+    background: oklch(var(--un-preset-theme-colors-secondary) / calc(var(--taxonomy-intensity, 0.12) + 0.04));
+    color: oklch(var(--un-preset-theme-colors-secondary) / 0.98);
+  }
+
   .taxonomy-button.is-active {
-    border-color: oklch(var(--un-preset-theme-colors-primary) / 0.24);
-    border-bottom-color: oklch(var(--un-preset-theme-colors-primary) / 0.72);
+    border-color: oklch(var(--un-preset-theme-colors-note) / 0.68);
+    background: oklch(var(--un-preset-theme-colors-note) / 0.16);
     color: oklch(var(--un-preset-theme-colors-primary));
-    transform: translateY(-1px);
   }
 
   .taxonomy-count {
-    color: oklch(var(--un-preset-theme-colors-secondary) / 0.48);
+    color: currentColor;
     font-size: 0.78em;
     font-weight: 700;
+    opacity: 0.58;
   }
 </style>

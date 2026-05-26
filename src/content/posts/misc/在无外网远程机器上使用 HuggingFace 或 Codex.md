@@ -8,6 +8,7 @@ description: |-
 updated: 2026-05-02T10:42:13Z
 tags:
   - Misc
+category: Misc
 draft: false
 pin: 0
 toc: true

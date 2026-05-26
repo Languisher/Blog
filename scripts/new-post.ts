@@ -33,6 +33,7 @@ description: ''
 updated: ''
 tags:
   - Tag
+category: Tag
 draft: false
 pin: 0
 toc: ${themeConfig.global.toc}

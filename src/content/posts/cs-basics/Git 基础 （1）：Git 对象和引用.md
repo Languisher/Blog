@@ -5,6 +5,7 @@ description: ""
 updated: 2026-04-10T11:11:30.472Z
 tags:
   - Git
+category: Git
 draft: false
 pin: 0
 toc: true

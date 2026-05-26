@@ -5,6 +5,7 @@ description: Roofline Model 用于衡量一个运算 / kernel 在特定计算平
 updated: 2026-05-02T07:56:25Z
 tags:
   - LLM-Infra
+category: LLM-Infra
 draft: false
 pin: 0
 toc: true
