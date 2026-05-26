@@ -5,7 +5,7 @@ description: ""
 updated: ""
 tags:
   - Paper-Reading
-draft: true
+draft: false
 pin: 0
 toc: true
 lang: ""
@@ -43,7 +43,7 @@ abbrlink: llm-simulator
 
 传统的 **Simulator** 并不会直接运行真实的 serving system，而是手动复现其中的核心逻辑，例如 scheduler、batching、KV cache 管理与请求调度等，再结合 workload trace 与性能模型来模拟系统行为。因此，本质上它是在“重新实现”一个简化版系统，其准确性高度依赖于模型是否能够正确刻画真实系统的行为。
 
-而 **Emulator** 则不同，它会直接运行真实的 serving framework（例如 vLLM 或 SGLang）的原始代码，保留真实的 control plane 与调度逻辑，只对底层硬件执行部分进行虚拟化，例如将 GPU computation、CUDA API 调用或显存分配替换为 sleep、runtime prediction 或 virtual time jump 等机制。因此，Emulator 的核心思想并不是重新模拟系统逻辑，而是在“真实系统 + 虚拟硬件”的基础上运行，从而尽可能减少 simulator 中常见的 semantic gap 问题。
+而 **Emulator** 则不同，它会直接运行真实的 serving framework（例如 vLLM 或 SGLang）的原始代码，保留真实的 control plane 与调度逻辑，只对底层硬件执行部分进行虚拟化，例如将 GPU computation、CUDA API 调用或显存分配替换为 sleep、runtime prediction 或 virtual time jump 等机制。因此，Emulator 的核心思想并不是重新模拟系统逻辑，而是在真实系统 + 虚拟硬件的基础上运行
 
 
 ### 现有 LLM Simulator 局限性
@@ -64,6 +64,7 @@ abbrlink: llm-simulator
 - `sleep` 的时候阻塞 CPU thread
 - 因此事件没有被加速
 
+在这个基础上，Revati 为了加速系统模拟的运行时间做了进一步优化：
 
 **Time-Accelerated Emulation**. 直接跳过 `sleep` 持续的时间，直接进入到下一个事件的 timestamp
 - 不阻塞，直接快进
@@ -101,13 +102,15 @@ while True:
 
 ![LLM-Emu Workflow](Attachments/LLM-Emu.png)
 
-LLM-Emu 在 Revati 的基础上：
+LLM-Emu：
+- 离线采集真实 GPU 执行数据，建立每次 schedule step `(total_tokens, concurrency) -> latency distribution` 的 profile；
+	- 原文： The profile pack used by the oracle is a JSON artifact capturing per-step latency as two joint distributions (decode-only and prefill-or-mixed) over two-dimensional buckets keyed by tt (total tokens in the step) and conc (concurrency, the number of running requests).
+- **GPU 执行**：将固定时间的 `sleep` 替换为基于 profile 的 latency sampling 与 timer-based waiting；
+- 不采用 Revati 式的 aggressive time jump（快进），而是在真实 wall-clock 下运行真实 vLLM serving runtime。
+	- 这是为了能够保留 jitter、tail latency 与 request interaction 等在线 serving dynamics
+	- 所以 LLM-Emu 才是本质的 Sleep-based emulation `sleep(...)`，而 Revati 做了快进
+	- 只有 GPU Compute 被跳过
 
-- 离线采集真实 GPU 执行数据，建立 `(total_tokens, concurrency) -> latency distribution` 的 profile；
-- 将固定 `sleep(...)` 的 GPU emulation 替换为基于 profile 的 latency sampling 与 timer-based waiting；
-- 不采用 Revati 式的 aggressive time-warp，而是在真实 wall-clock 下运行真实 vLLM serving runtime。
-
-因此，虽然 GPU compute 被跳过，但 scheduler、KV-cache 管理、异步 worker、queueing、HTTP serving 等控制路径仍然沿用真实 runtime，从而能够保留 jitter、tail latency 与 request interaction 等在线 serving dynamics。
 
 其他：
 - 论文没有提到多 worker 时间协调，多节点 clock consistency 等等。
