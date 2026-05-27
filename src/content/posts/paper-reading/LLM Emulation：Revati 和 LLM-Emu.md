@@ -4,8 +4,8 @@ published: 2026-05-24T20:24:04.974Z
 description: ""
 updated: ""
 tags:
-  - 论文阅读笔记
-category: 论文阅读笔记
+  - LLM模拟器
+category: LLM 模拟器
 draft: false
 pin: 0
 toc: true

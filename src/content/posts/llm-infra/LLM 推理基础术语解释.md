@@ -3,8 +3,9 @@ title: LLM 推理基础术语解释
 published: 2026-03-03T15:19:05.177Z
 description: 在大模型推理系统中，涉及 batching、KV Cache、Prefill/Decode、并行策略等大量概念。本文将对这些关键机制进行系统梳理。
 updated: ""
-tags: [LLM]
-category: LLM
+tags:
+  - LLM-Infra
+category: LLM 推理优化
 draft: false
 pin: 0
 toc: true

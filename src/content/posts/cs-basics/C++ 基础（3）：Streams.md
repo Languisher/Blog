@@ -5,7 +5,7 @@ description: ""
 updated: ""
 tags:
   - CPP
-category: CPP
+category: 编程语言
 draft: false
 pin: 0
 toc: true

@@ -5,7 +5,7 @@ description: ""
 updated: ""
 tags:
   - Misc
-category: Misc
+category: Misc.
 draft: false
 pin: 0
 toc: false

@@ -3,12 +3,31 @@ import { themeConfig } from '@/config'
 import { ui } from '@/i18n/ui'
 import { getPageInfo } from '@/utils/page'
 
-const { currentLang, getLocalizedPath, isPost } = getPageInfo(Astro.url.pathname)
+const { currentLang, getLocalizedPath, isHome, isPost } = getPageInfo(Astro.url.pathname)
 const { title, subtitle, i18nTitle } = themeConfig.site
 
 const currentUI = ui[currentLang as keyof typeof ui] ?? {}
 const headerTitle = i18nTitle ? currentUI.title : title
 const headerSubtitle = i18nTitle ? currentUI.subtitle : subtitle
+const portfolioConfig = themeConfig.homePortfolio
+const portfolioTranslation = portfolioConfig?.translations?.[currentLang]
+const portfolio = portfolioConfig
+  ? {
+      ...portfolioConfig,
+      ...portfolioTranslation,
+    }
+  : undefined
+const shouldShowPortfolio = Boolean(
+  isHome
+  && portfolioConfig?.enabled
+  && portfolio
+  && (
+    portfolio.avatar.trim()
+    || portfolio.name.trim()
+    || portfolio.organization.trim()
+    || portfolio.description.trim()
+  ),
+)
 
 const TitleTag = isPost ? 'h2' : 'h1'
 const SubtitleTag = isPost ? 'div' : 'h2'
@@ -58,4 +77,107 @@ const SubtitleTag = isPost ? 'div' : 'h2'
       {headerSubtitle}
     </SubtitleTag>
   )}
+
+  {shouldShowPortfolio && portfolio && (
+    <section class="home-portfolio" aria-label="Portfolio">
+      {portfolio.avatar.trim() && (
+        <img
+          class="home-portfolio__avatar"
+          src={portfolio.avatar}
+          alt={portfolio.name ? `${portfolio.name} avatar` : 'Portfolio avatar'}
+          loading="eager"
+        />
+      )}
+
+      {portfolio.name.trim() && (
+        <div class="home-portfolio__name">
+          {portfolio.name}
+        </div>
+      )}
+
+      {portfolio.organization.trim() && (
+        <div class="home-portfolio__organization">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M3 21h18v-2H3v2Zm2-4h3V9H5v8Zm5 0h3V9h-3v8Zm5 0h3V9h-3v8ZM2 7h20L12 2 2 7Zm4.47-2L12 2.24 17.53 5H6.47Z" />
+          </svg>
+          <span>{portfolio.organization}</span>
+        </div>
+      )}
+
+      {portfolio.description.trim() && (
+        <p class="home-portfolio__description">
+          {portfolio.description}
+        </p>
+      )}
+    </section>
+  )}
 </header>
+
+<style>
+  .home-portfolio {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: min(100%, 14rem);
+    margin-top: 2rem;
+    color: oklch(var(--un-preset-theme-colors-secondary) / 0.86);
+  }
+
+  .home-portfolio__avatar {
+    width: 7.8rem;
+    height: 7.8rem;
+    border: 3px solid oklch(var(--un-preset-theme-colors-secondary) / 0.08);
+    border-radius: 999rem;
+    object-fit: cover;
+    background: oklch(var(--un-preset-theme-colors-secondary) / 0.06);
+  }
+
+  .home-portfolio__name {
+    margin-top: 1.05rem;
+    color: oklch(var(--un-preset-theme-colors-primary));
+    font-size: 1.45rem;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .home-portfolio__organization {
+    display: flex;
+    align-items: center;
+    gap: 0.48rem;
+    margin-top: 2rem;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .home-portfolio__organization svg {
+    flex: 0 0 auto;
+    width: 1.18rem;
+    height: 1.18rem;
+    fill: currentColor;
+    opacity: 0.85;
+  }
+
+  .home-portfolio__description {
+    margin: 0.95rem 0 0;
+    max-width: 13.5rem;
+    color: oklch(var(--un-preset-theme-colors-secondary) / 0.86);
+    font-size: 0.98rem;
+    line-height: 1.62;
+  }
+
+  @media (max-width: 1023px) {
+    .home-portfolio {
+      width: min(100%, 26rem);
+      margin-top: 1.8rem;
+    }
+
+    .home-portfolio__avatar {
+      width: 6.5rem;
+      height: 6.5rem;
+    }
+
+    .home-portfolio__description {
+      max-width: 24rem;
+    }
+  }
+</style>

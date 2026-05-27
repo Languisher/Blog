@@ -4,7 +4,7 @@ published: 2026-05-10T08:46:28.640Z
 description: ""
 updated: ""
 tags:
-  - 课程笔记
+  - 博弈论
 category: 课程笔记
 draft: false
 pin: 0

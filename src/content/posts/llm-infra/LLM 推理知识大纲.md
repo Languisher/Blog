@@ -5,7 +5,7 @@ description: ""
 updated: ""
 tags:
   - LLM-Infra
-category: LLM-Infra
+category: LLM 推理优化
 draft: false
 pin: 99
 toc: true
@@ -16,7 +16,7 @@ abbrlink: llm-infra
 
 ## 基础知识
 
-- 通信基础：[集合通信操作和其实现](../parallelism/集合通信操作和其实现.md)
+- 通信基础：[集合通信操作和其实现](../communication/集合通信操作和其实现.md)
 - LLM 基础：
 	- [LLM 基础：Attention](../llm/LLM%20基础：Attention.md)
 	- [LLM 基础：Transformers](../llm/LLM%20基础：Transformers.md)
@@ -96,6 +96,6 @@ abbrlink: llm-infra
 
 ## 通信与系统基础
 
-- [集合通信操作和其实现](../parallelism/集合通信操作和其实现.md)
+- [集合通信操作和其实现](../communication/集合通信操作和其实现.md)
 - 通信-计算 overlap
 - 带宽模型与性能分析

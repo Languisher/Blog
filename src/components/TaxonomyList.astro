@@ -22,11 +22,12 @@ function getIntensity(count: number) {
 }
 ---
 
-<div class="no-heti taxonomy-list flex flex-wrap items-center gap-x-3 gap-y-3.2">
+<div class="no-heti taxonomy-list">
   <a
     href={allHref}
     class:list={[
       'taxonomy-button',
+      'taxonomy-button-all',
       currentKey === '' ? 'is-active' : '',
     ]}
     style={`--taxonomy-intensity: ${getIntensity(maxCount)}; --taxonomy-depth: 0;`}
@@ -34,28 +35,44 @@ function getIntensity(count: number) {
     {allLabel}
   </a>
 
-  {items.map(item => (
-    <a
-      href={item.href}
-      class:list={[
-        'taxonomy-button',
-        item.active ? 'is-active' : '',
-      ]}
-      style={`--taxonomy-intensity: ${getIntensity(item.count)}; --taxonomy-depth: ${item.depth ?? 0};`}
-    >
-      {item.label}
-      <span class="taxonomy-count">{item.count}</span>
-    </a>
-  ))}
+  <div class="taxonomy-tree">
+    {items.map(item => (
+      <a
+        href={item.href}
+        class:list={[
+          'taxonomy-button',
+          item.active ? 'is-active' : '',
+        ]}
+        style={`--taxonomy-intensity: ${getIntensity(item.count)}; --taxonomy-depth: ${item.depth ?? 0};`}
+      >
+        {item.label}
+        <span class="taxonomy-count">{item.count}</span>
+      </a>
+    ))}
+  </div>
 </div>
 
 <style>
+  .taxonomy-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.72rem;
+  }
+
+  .taxonomy-tree {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.52rem;
+  }
+
   .taxonomy-button {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
     min-height: 1.7rem;
-    margin-left: calc(var(--taxonomy-depth, 0) * 0.85rem);
+    margin-left: calc(var(--taxonomy-depth, 0) * 1.15rem);
     border: 1px solid transparent;
     border-radius: 0.55rem;
     padding: 0.42rem 1.08rem;
@@ -67,6 +84,25 @@ function getIntensity(count: number) {
       border-color 0.16s ease-out,
       color 0.16s ease-out,
       background-color 0.16s ease-out;
+  }
+
+  .taxonomy-button:not(.taxonomy-button-all) {
+    position: relative;
+  }
+
+  .taxonomy-button:not(.taxonomy-button-all)::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--taxonomy-depth, 0) * -1.15rem + 0.42rem);
+    top: 50%;
+    width: calc(var(--taxonomy-depth, 0) * 0.72rem);
+    height: 1px;
+    background: oklch(var(--un-preset-theme-colors-secondary) / 0.24);
+    transform: translateY(-50%);
+  }
+
+  .taxonomy-button[style*="--taxonomy-depth: 0"]::before {
+    display: none;
   }
 
   .taxonomy-button:hover {

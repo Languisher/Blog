@@ -29,8 +29,8 @@ export const themeConfig: ThemeConfig = {
     // show intro box at the top of the homepage
     enabled: true,
     // default intro content
-    title: 'Languisher 的技术博客',
-    description: '欢迎来到我的个人博客！这里主要记录我的课程笔记以及学习过程中的一些总结。博客仍在装修中……',
+    title: '',
+    description: '',
     // optional localized content
     translations: {
       en: {
@@ -40,6 +40,23 @@ export const themeConfig: ThemeConfig = {
     },
   },
   // HOMEPAGE INTRO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> END
+
+  // HOMEPAGE PORTFOLIO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> START
+  homePortfolio: {
+    enabled: true,
+    avatar: '/icons/og-logo.jpeg',
+    name: '',
+    organization: '上海交通大学 @ IMPACT',
+    description: '主要关注大模型推理优化、计算机系统以及并行计算。',
+    translations: {
+      en: {
+        name: 'Languisher',
+        organization: 'Shanghai Jiao Tong University · IMPACT @ ACA Lab',
+        description: 'I focus on LLM inference optimization, computer systems, and parallel computing.',
+      },
+    },
+  },
+  // HOMEPAGE PORTFOLIO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> END
 
   // HOMEPAGE POST LIST >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> START
   homePostList: {

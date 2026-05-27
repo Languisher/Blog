@@ -5,7 +5,7 @@ description: 本文介绍如何优化 CUDA SGEMM Kernel.
 updated: ""
 tags:
   - CUDA
-category: CUDA
+category: CUDA编程
 draft: true
 pin: 0
 toc: true

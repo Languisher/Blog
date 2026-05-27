@@ -5,7 +5,7 @@ description: ""
 updated: ""
 tags:
   - CUDA
-category: CUDA
+category: CUDA编程
 draft: false
 pin: 0
 toc: true

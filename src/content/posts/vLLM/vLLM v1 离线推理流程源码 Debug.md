@@ -5,7 +5,7 @@ description: ""
 updated: ""
 tags:
   - vLLM
-category: vLLM
+category: LLM 推理平台
 draft: false
 pin: 0
 toc: true
@@ -29,7 +29,7 @@ abbrlink: vllm-system-offline-debug
 
 ![](Attachments/vLLM-v1-Offline-Inference.png)
 
-在离线推理阶段，可以用上图来表示所有组件之间的关系。需要注意的是 LLM 框和 EngineCoreProc 分别画在不同的框里，代表两个组件分别在不同的进程之间运行。正如下文将会看到，两个进程需要进行通信，通过 [Python ZMQ：消息传递库](../parallelism/Python%20ZMQ：消息传递库.md) 实现，以及通过 `input_socket` 和 `output_socket` 进行通信。图中 `CoreEngineProcManager` 指向 `EngineCoreProc` 的箭头表示 `CoreEngineProcManager` 负责维护这个进程的生命周期、上下文管理等。
+在离线推理阶段，可以用上图来表示所有组件之间的关系。需要注意的是 LLM 框和 EngineCoreProc 分别画在不同的框里，代表两个组件分别在不同的进程之间运行。正如下文将会看到，两个进程需要进行通信，通过 [Python ZMQ：消息传递库](../communication/Python%20ZMQ：消息传递库.md) 实现，以及通过 `input_socket` 和 `output_socket` 进行通信。图中 `CoreEngineProcManager` 指向 `EngineCoreProc` 的箭头表示 `CoreEngineProcManager` 负责维护这个进程的生命周期、上下文管理等。
 
 ## 初始化阶段
 

@@ -7,8 +7,8 @@ description: |-
 updated: 2026-05-01T15:33:24Z
 tags:
   - LLM-Infra
-  - Attention
-category: LLM-Infra
+  - LLM-Attention
+category: LLM 推理优化
 draft: false
 pin: 0
 toc: true

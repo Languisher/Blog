@@ -6,7 +6,7 @@ updated: ""
 tags:
   - Nano-vLLM
   - LLM-Infra
-category: Nano-vLLM
+category: LLM 推理平台
 draft: false
 pin: 0
 toc: true

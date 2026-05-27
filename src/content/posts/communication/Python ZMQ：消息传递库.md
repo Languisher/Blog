@@ -5,8 +5,8 @@ description: ""
 updated: ""
 tags:
   - Python
-  - Distributed-System
-category: Python
+  - 通信
+category: 通信
 draft: false
 pin: 0
 toc: true

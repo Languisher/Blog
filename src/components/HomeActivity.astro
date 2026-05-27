@@ -1,0 +1,310 @@
+---
+import type { Post } from '@/types'
+
+export interface Props {
+  posts: Post[]
+}
+
+const { posts } = Astro.props
+const weekCount = 26
+const dayCount = weekCount * 7
+const today = startOfUtcDay(new Date())
+const todayKey = toDateKey(today)
+const activityByDate = new Map<string, number>()
+
+posts.forEach((post) => {
+  const activityDate = post.data.updated ?? post.data.published
+  const dateKey = toDateKey(activityDate)
+
+  if (dateKey > todayKey) {
+    return
+  }
+
+  activityByDate.set(dateKey, (activityByDate.get(dateKey) ?? 0) + 1)
+})
+
+const activeDays = activityByDate.size
+const maxCount = Math.max(...activityByDate.values(), 0)
+const streakDays = getCurrentStreak(today, activityByDate)
+const endDayOfWeek = today.getUTCDay()
+const firstDate = addUtcDays(today, -(dayCount - 1 + endDayOfWeek))
+
+const cells = Array.from({ length: dayCount }, (_, index) => {
+  const date = addUtcDays(firstDate, index)
+  const dateKey = toDateKey(date)
+  const count = activityByDate.get(dateKey) ?? 0
+
+  return {
+    count,
+    date,
+    key: dateKey,
+    label: formatCellLabel(date, count),
+    level: getLevel(count, maxCount),
+  }
+})
+
+const stats = [
+  { label: 'Total posts', value: posts.length },
+  { label: 'Active days', value: activeDays },
+  { label: 'Day streak', value: streakDays },
+]
+
+function startOfUtcDay(date: Date) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+}
+
+function addUtcDays(date: Date, days: number) {
+  const nextDate = new Date(date)
+  nextDate.setUTCDate(nextDate.getUTCDate() + days)
+  return nextDate
+}
+
+function toDateKey(date: Date) {
+  return startOfUtcDay(date).toISOString().slice(0, 10)
+}
+
+function getCurrentStreak(date: Date, dates: Map<string, number>) {
+  let cursor = startOfUtcDay(date)
+  let streak = 0
+
+  while (dates.has(toDateKey(cursor))) {
+    streak += 1
+    cursor = addUtcDays(cursor, -1)
+  }
+
+  return streak
+}
+
+function getLevel(count: number, max: number) {
+  if (count === 0 || max === 0) {
+    return 0
+  }
+
+  return Math.min(4, Math.max(1, Math.ceil((count / max) * 4)))
+}
+
+function formatCellLabel(date: Date, count: number) {
+  const formattedDate = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date)
+  const suffix = count === 1 ? 'post update' : 'post updates'
+
+  return `${formattedDate}: ${count} ${suffix}`
+}
+---
+
+<section class="home-activity" aria-label="Post update activity">
+  <div class="home-activity__stats">
+    {stats.map(stat => (
+      <div class="home-activity__stat">
+        <div class="home-activity__stat-value font-time">{stat.value}</div>
+        <div class="home-activity__stat-label">{stat.label}</div>
+      </div>
+    ))}
+  </div>
+
+  <div class="home-activity__heatmap" aria-label="Post update heatmap">
+    <div class="home-activity__weekday-labels" aria-hidden="true">
+      <span>Mon</span>
+      <span>Wed</span>
+      <span>Fri</span>
+    </div>
+
+    <div class="home-activity__grid-wrap">
+      <div class="home-activity__grid">
+        {cells.map(cell => (
+          <time
+            class={`home-activity__cell home-activity__cell--level-${cell.level}`}
+            datetime={cell.key}
+            title={cell.label}
+            aria-label={cell.label}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="home-activity__legend" aria-hidden="true">
+    <span>Less</span>
+    {[0, 1, 2, 3, 4].map(level => (
+      <span class={`home-activity__legend-cell home-activity__cell--level-${level}`} />
+    ))}
+    <span>More</span>
+  </div>
+</section>
+
+<style>
+  .home-activity {
+    margin-top: 1.85rem;
+    color: oklch(var(--un-preset-theme-colors-secondary) / 0.78);
+  }
+
+  .home-activity__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .home-activity__stat {
+    min-width: 0;
+  }
+
+  .home-activity__stat-value {
+    color: oklch(var(--un-preset-theme-colors-primary));
+    font-size: clamp(1.65rem, 8vw, 2.45rem);
+    font-weight: 800;
+    line-height: 0.95;
+  }
+
+  .home-activity__stat-label,
+  .home-activity__legend {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .home-activity__stat-label {
+    margin-top: 0.45rem;
+  }
+
+  .home-activity__heatmap {
+    display: grid;
+    grid-template-columns: 2.55rem minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: start;
+  }
+
+  .home-activity__weekday-labels {
+    display: grid;
+    grid-template-rows: repeat(7, 0.76rem);
+    gap: 0.32rem;
+    padding-top: 0.01rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 0.76rem;
+  }
+
+  .home-activity__weekday-labels span:nth-child(1) {
+    grid-row: 2;
+  }
+
+  .home-activity__weekday-labels span:nth-child(2) {
+    grid-row: 4;
+  }
+
+  .home-activity__weekday-labels span:nth-child(3) {
+    grid-row: 6;
+  }
+
+  .home-activity__grid-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+  }
+
+  .home-activity__grid-wrap::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-activity__grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 0.76rem);
+    grid-auto-columns: 0.76rem;
+    gap: 0.32rem;
+    width: max-content;
+  }
+
+  .home-activity__cell,
+  .home-activity__legend-cell {
+    box-sizing: border-box;
+    display: block;
+    border: 1px solid oklch(var(--un-preset-theme-colors-secondary) / 0.08);
+    border-radius: 0.22rem;
+    background: oklch(var(--un-preset-theme-colors-secondary) / 0.1);
+  }
+
+  .home-activity__cell {
+    width: 0.76rem;
+    height: 0.76rem;
+  }
+
+  .home-activity__legend {
+    display: flex;
+    align-items: center;
+    gap: 0.42rem;
+    margin-top: 1.45rem;
+  }
+
+  .home-activity__legend-cell {
+    width: 0.82rem;
+    height: 0.82rem;
+  }
+
+  .home-activity__cell--level-1 {
+    background: oklch(86% 0.035 148);
+  }
+
+  .home-activity__cell--level-2 {
+    background: oklch(74% 0.058 148);
+  }
+
+  .home-activity__cell--level-3 {
+    background: oklch(61% 0.07 148);
+  }
+
+  .home-activity__cell--level-4 {
+    background: oklch(47% 0.075 148);
+  }
+
+  html.dark .home-activity__cell,
+  html.dark .home-activity__legend-cell {
+    border-color: oklch(var(--un-preset-theme-colors-secondary) / 0.11);
+    background: oklch(var(--un-preset-theme-colors-secondary) / 0.13);
+  }
+
+  html.dark .home-activity__cell--level-1 {
+    background: oklch(38% 0.045 150);
+  }
+
+  html.dark .home-activity__cell--level-2 {
+    background: oklch(48% 0.06 150);
+  }
+
+  html.dark .home-activity__cell--level-3 {
+    background: oklch(58% 0.075 150);
+  }
+
+  html.dark .home-activity__cell--level-4 {
+    background: oklch(68% 0.09 150);
+  }
+
+  @media (max-width: 520px) {
+    .home-activity__stats {
+      gap: 0.65rem;
+    }
+
+    .home-activity__stat-value {
+      font-size: clamp(1.5rem, 12vw, 2rem);
+    }
+
+    .home-activity__stat-label,
+    .home-activity__legend {
+      font-size: 0.88rem;
+    }
+
+    .home-activity__heatmap {
+      grid-template-columns: 2.2rem minmax(0, 1fr);
+      gap: 0.38rem;
+    }
+
+    .home-activity__weekday-labels {
+      font-size: 0.74rem;
+    }
+  }
+</style>

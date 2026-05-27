@@ -5,7 +5,8 @@ description: 在 Mixture-of-Experts (MoE) 架构中，token 通过 gating 网络
 updated: ""
 tags:
   - LLM-Infra
-category: LLM-Infra
+  - LLM-MoE
+category: LLM 推理优化
 draft: false
 pin: 0
 toc: true

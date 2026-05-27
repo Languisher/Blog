@@ -3,9 +3,11 @@ title: MoE 模型基础
 published: 2026-03-24T19:33:03.058Z
 description: ""
 updated: ""
-tags: [LLM]
-category: LLM
-draft: true
+tags:
+  - LLM
+  - LLM-MoE
+category: LLM 基础
+draft: false
 pin: 0
 toc: true
 lang: ""
@@ -144,3 +146,7 @@ v2: 结构保持一致，加了一些 Expert；为了减少通信开销，多了
 在训练过程中额外考虑了 Token 的 output communication cost
 
 v3: Sigmoid+Softmax topK + topM. 以及 Aux-loss-free 减少依赖 balancing loss + seq-wise aux 以避免在推理时，极端的输入导致 Expert 过载，相比于 Batch level 来说更细粒度的平衡
+
+## 参考资料
+
+CS336

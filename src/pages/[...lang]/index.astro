@@ -1,9 +1,10 @@
 ---
+import HomeActivity from '@/components/HomeActivity.astro'
 import PostList from '@/components/PostList.astro'
 import { allLocales, themeConfig } from '@/config'
 import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
 import Layout from '@/layouts/Layout.astro'
-import { getPinnedPosts, getPostsByYear } from '@/utils/content'
+import { getPinnedPosts, getPosts, getPostsByYear } from '@/utils/content'
 
 export async function getStaticPaths() {
   return allLocales.map(lang => ({
@@ -12,6 +13,7 @@ export async function getStaticPaths() {
 }
 
 const currentLang = getLangFromLocale(Astro.currentLocale)
+const posts = await getPosts(currentLang)
 const pinnedPosts = await getPinnedPosts(currentLang)
 const postsByYear = await getPostsByYear(currentLang)
 const homeIntroConfig = themeConfig.homeIntro
@@ -23,8 +25,9 @@ const shouldShowHomeIntro = Boolean(
 
 <Layout>
   <!-- Homepage Intro -->
-  {shouldShowHomeIntro && homeIntro && (
-    <section class="mb-8 lg:mb-10">
+  <section class="mb-8 lg:mb-10">
+    {shouldShowHomeIntro && homeIntro && (
+      <>
       {homeIntro.title.trim() && (
         <h1 class="mb-3 text-6.5 c-primary font-medium leading-tight lg:text-7.5">
           {homeIntro.title}
@@ -35,8 +38,10 @@ const shouldShowHomeIntro = Boolean(
           {homeIntro.description}
         </p>
       )}
-    </section>
-  )}
+      </>
+    )}
+    <HomeActivity posts={posts} />
+  </section>
 
   <!-- Pinned Posts -->
   {pinnedPosts.length > 0 && (

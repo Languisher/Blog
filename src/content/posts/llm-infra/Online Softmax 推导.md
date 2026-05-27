@@ -5,7 +5,8 @@ description: Online softmax 通过维护可增量更新的中间状态 $(m,l)$�
 updated: ""
 tags:
   - LLM-Infra
-category: LLM-Infra
+  - 数学
+category: LLM 推理优化
 draft: false
 pin: 0
 toc: true

@@ -3,8 +3,10 @@ title: vLLM v1 架构介绍
 published: 2026-04-10T16:23:00.195Z
 description: ""
 updated: ""
-tags: [LLM-Infra, vLLM]
-category: LLM-Infra
+tags:
+  - LLM-Infra
+  - vLLM
+category: LLM 推理平台
 draft: true
 pin: 0
 toc: true

@@ -4,9 +4,8 @@ published: 2026-05-17T18:51:46.442Z
 description: "**Least Recently Used (LRU)** 算法是一种缓存淘汰策略，用于在有限缓存空间中维护数据及其最近访问顺序。LRU 算法通常基于哈希表 + 双向链表，即**哈希链表**实现"
 updated: ""
 tags:
-  - DataStructure
-  - Algorithms
-category: DataStructure
+  - 数据结构
+category: 数据结构和算法
 draft: false
 pin: 0
 toc: true

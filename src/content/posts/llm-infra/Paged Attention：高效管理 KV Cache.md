@@ -4,8 +4,8 @@ published: 2026-05-03T22:51:43.774Z
 description: ""
 updated: ""
 tags:
-  - LLM-Infra
-category: LLM-Infra
+  - LLM-KVCache
+category: LLM 推理优化
 draft: false
 pin: 0
 toc: true

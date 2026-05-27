@@ -4,8 +4,8 @@ published: 2026-05-04T09:06:50.273Z
 description: LoRA 在原模型权重上 $W$ 引入一个低秩结构的增量项（$\Delta W = BA$），在不改变原参数的情况下，仅训练该低秩参数，从而在低维子空间中实现高效微调。
 updated: ""
 tags:
-  - LLM
-category: LLM
+  - LLM-LoRA
+category: LLM 基础
 draft: false
 pin: 0
 toc: true

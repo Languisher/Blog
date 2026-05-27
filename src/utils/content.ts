@@ -5,7 +5,7 @@ import { getCollection, render } from 'astro:content'
 import { defaultLocale } from '@/config'
 import { getPostPath } from '@/i18n/path'
 import { memoize } from '@/utils/cache'
-import categoriesSource from '../data/categories.md?raw'
+import categoriesSource from '../data/categories.toml?raw'
 
 const metaCache = new Map<string, { minutes: number }>()
 
@@ -219,6 +219,7 @@ export const getPostsByTag = memoize(_getPostsByTag)
 export interface CategoryNode {
   name: string
   slug: string
+  aliases: string[]
   children: CategoryNode[]
   depth: number
 }
@@ -230,6 +231,7 @@ export interface CategorySummary extends CategoryNode {
 interface RawCategoryNode {
   name: string
   slug?: string
+  aliases?: string[]
   children?: RawCategoryNode[]
 }
 
@@ -237,22 +239,100 @@ function slugifyCategory(name: string) {
   return encodeURIComponent(name.trim().toLowerCase().replace(/\s+/g, '-'))
 }
 
-function parseCategoryConfig() {
-  const match = categoriesSource.match(/```json\s*([\s\S]*?)```/i)
-  if (!match?.[1]) {
-    return []
-  }
+function parseTomlString(value: string) {
+  return JSON.parse(value) as string
+}
 
-  return JSON.parse(match[1]) as RawCategoryNode[]
+function parseTomlStringArray(value: string) {
+  const strings = value.match(/"(?:\\.|[^"])*"/g) ?? []
+  return strings.map(parseTomlString)
+}
+
+function parseCategoryConfig() {
+  const roots: RawCategoryNode[] = []
+  const stack: RawCategoryNode[] = []
+
+  let currentNode: RawCategoryNode | undefined
+
+  categoriesSource.split(/\r?\n/).forEach((rawLine) => {
+    const line = rawLine.trim()
+
+    if (!line || line.startsWith('#')) {
+      return
+    }
+
+    const headerMatch = line.match(/^\[\[(categories(?:\.children)*)\]\]$/)
+    if (headerMatch) {
+      const depth = (headerMatch[1].match(/children/g) ?? []).length
+      if (depth > 1) {
+        throw new Error(`Category hierarchy supports at most two levels. Found deeper category near "${line}"`)
+      }
+
+      const node: RawCategoryNode = {
+        name: '',
+        children: [],
+      }
+
+      if (depth === 0) {
+        roots.push(node)
+      }
+      else {
+        const parent = stack[depth - 1]
+        if (!parent) {
+          throw new Error(`Invalid category TOML hierarchy near "${line}"`)
+        }
+        parent.children = parent.children ?? []
+        parent.children.push(node)
+      }
+
+      stack[depth] = node
+      stack.length = depth + 1
+      currentNode = node
+      return
+    }
+
+    if (!currentNode) {
+      return
+    }
+
+    const separatorIndex = line.indexOf('=')
+    if (separatorIndex === -1) {
+      return
+    }
+
+    const key = line.slice(0, separatorIndex).trim()
+    const value = line.slice(separatorIndex + 1).trim()
+
+    if (!/^[a-z][\w-]*$/i.test(key)) {
+      return
+    }
+
+    if (key === 'name' && value.startsWith('"')) {
+      currentNode.name = parseTomlString(value)
+    }
+    else if (key === 'slug' && value.startsWith('"')) {
+      currentNode.slug = parseTomlString(value)
+    }
+    else if (key === 'aliases' && value.startsWith('[')) {
+      currentNode.aliases = parseTomlStringArray(value)
+    }
+  })
+
+  return roots
 }
 
 function normalizeCategoryNodes(nodes: RawCategoryNode[], depth = 0): CategoryNode[] {
-  return nodes.map((node) => {
+  if (nodes.length > 0 && depth > 1) {
+    throw new Error('Category hierarchy supports at most two levels')
+  }
+
+  return nodes.filter(node => node.name).map((node) => {
     const slug = node.slug?.trim() || slugifyCategory(node.name)
 
     return {
       name: node.name,
       slug,
+      aliases: node.aliases ?? [],
       depth,
       children: normalizeCategoryNodes(node.children ?? [], depth + 1),
     }
@@ -279,16 +359,45 @@ async function getCategoryByInput(category: string) {
   const normalized = category.trim()
   const categories = await getAllCategories()
 
-  return categories.find(item => item.slug === normalized || item.name === normalized)
+  return categories.find(item =>
+    item.slug === normalized
+    || item.name === normalized
+    || item.aliases.includes(normalized),
+  )
 }
 
-async function getCategoryPostKey(category: string) {
-  const configuredCategory = await getCategoryByInput(category)
-  return configuredCategory?.slug ?? slugifyCategory(category)
+async function getCategoryPostKey(post: Post) {
+  const categories = await getAllCategories()
+  const categoryByInput = new Map<string, CategoryNode>()
+
+  categories.forEach((category) => {
+    categoryByInput.set(category.slug, category)
+    categoryByInput.set(category.name, category)
+    category.aliases.forEach(alias => categoryByInput.set(alias, category))
+  })
+
+  const candidates = [
+    post.data.category,
+    post.id.split('/')[0] ?? '',
+  ].map(candidate => candidate.trim()).filter(Boolean)
+
+  for (const candidate of candidates) {
+    const configuredCategory = categoryByInput.get(candidate)
+
+    if (configuredCategory) {
+      return configuredCategory.slug
+    }
+  }
+
+  return candidates[0] ? slugifyCategory(candidates[0]) : ''
 }
 
 function getPostCategoryInput(post: Post) {
   return post.data.category || post.id.split('/')[0] || ''
+}
+
+function getCategoryDescendantSlugs(category: CategoryNode): string[] {
+  return category.children.flatMap(child => [child.slug, ...getCategoryDescendantSlugs(child)])
 }
 
 /**
@@ -308,7 +417,12 @@ async function _getPostsGroupByCategories(lang?: Language) {
       continue
     }
 
-    const categoryKey = await getCategoryPostKey(categoryInput)
+    const categoryKey = await getCategoryPostKey(post)
+
+    if (!categoryKey) {
+      continue
+    }
+
     const categoryPosts = categoryMap.get(categoryKey) ?? []
     categoryPosts.push(post)
     categoryMap.set(categoryKey, categoryPosts)
@@ -326,12 +440,16 @@ export const getPostsGroupByCategories = memoize(_getPostsGroupByCategories)
  * @returns Flattened category summaries in configured tree order
  */
 async function _getAllCategoriesWithCount(lang?: Language): Promise<CategorySummary[]> {
-  const configuredCategories = await getAllCategories()
+  const categoryTree = await getCategoryTree()
+  const configuredCategories = flattenCategoryNodes(categoryTree)
   const categoryMap = await getPostsGroupByCategories(lang)
   const configuredSlugs = new Set(configuredCategories.map(category => category.slug))
   const summaries = configuredCategories.map(category => ({
     ...category,
-    count: categoryMap.get(category.slug)?.length ?? 0,
+    count: [
+      category.slug,
+      ...getCategoryDescendantSlugs(category),
+    ].reduce((count, slug) => count + (categoryMap.get(slug)?.length ?? 0), 0),
   }))
 
   for (const [slug, posts] of categoryMap.entries()) {
@@ -342,13 +460,14 @@ async function _getAllCategoriesWithCount(lang?: Language): Promise<CategorySumm
     summaries.push({
       name: getPostCategoryInput(posts[0]!) || slug,
       slug,
+      aliases: [],
       children: [],
       depth: 0,
       count: posts.length,
     })
   }
 
-  return summaries
+  return summaries.filter(category => category.count > 0)
 }
 
 export const getAllCategoriesWithCount = memoize(_getAllCategoriesWithCount)
@@ -362,7 +481,13 @@ export const getAllCategoriesWithCount = memoize(_getAllCategoriesWithCount)
  */
 async function _getPostsByCategory(categorySlug: string, lang?: Language) {
   const categoryMap = await getPostsGroupByCategories(lang)
-  return categoryMap.get(categorySlug) ?? []
+  const category = await getCategoryByInput(categorySlug)
+  const categorySlugs = category
+    ? [category.slug, ...getCategoryDescendantSlugs(category)]
+    : [categorySlug]
+  const posts = categorySlugs.flatMap(slug => categoryMap.get(slug) ?? [])
+
+  return Array.from(new Map(posts.map(post => [post.id, post])).values())
 }
 
 export const getPostsByCategory = memoize(_getPostsByCategory)
@@ -423,7 +548,7 @@ function normalizeRawLinkUrl(url: string) {
 function getMarkdownLinkUrls(markdown: string) {
   const urls = new Set<string>()
   const markdownLinkPattern = /(!?)\[[^\]\n]*\]\((<[^>\n]+>|(?:\\.|[^()\\\n]|\([^()\n]*\))+)\)/g
-  const referenceDefinitionPattern = /^[ \t]{0,3}\[([^\]\n]+)\]:[ \t]*(<[^>\n]+>|[^ \t\n]+)(?:[ \t]+.*)?$/gm
+  const referenceDefinitionPattern = /^[ \t]{0,3}\[([^\]\n]+)\]:[ \t]*(<[^>\n]+>|[^ \t\n]+)(?:[ \t].*)?$/gm
   const referenceLinkPattern = /(!?)\[[^\]\n]+\]\[([^\]\n]*)\]/g
   const htmlLinkPattern = /\bhref=["']([^"']+)["']/g
   const referenceDefinitions = new Map<string, string>()

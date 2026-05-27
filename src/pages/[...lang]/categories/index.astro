@@ -1,5 +1,5 @@
 ---
-import TaxonomyList from '@/components/TaxonomyList.astro'
+import CategoryList from '@/components/CategoryList.astro'
 import TagPostTimeline from '@/components/TagPostTimeline.astro'
 import { allLocales } from '@/config'
 import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
@@ -18,9 +18,11 @@ const allCategories = await getAllCategoriesWithCount(currentLang)
 const posts = (await getPosts(currentLang)).filter(post => post.data.category || post.id.includes('/'))
 const categoryItems = allCategories.map(category => ({
   label: category.name,
+  slug: category.slug,
   href: getCategoryPath(category.slug, currentLang),
   count: category.count,
   depth: category.depth,
+  childSlugs: category.children.map(child => child.slug),
 }))
 ---
 
@@ -28,7 +30,7 @@ const categoryItems = allCategories.map(category => ({
   <!-- Decorative Line -->
   <div class="uno-decorative-line" />
   <!-- Category List -->
-  <TaxonomyList
+  <CategoryList
     items={categoryItems}
     allHref={getLocalizedPath('/categories/', currentLang)}
   />

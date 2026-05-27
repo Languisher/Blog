@@ -5,7 +5,8 @@ description: Punica 将 Multi-LoRA 推理中按请求执行的 for-loop 重写�
 updated: ""
 tags:
   - LLM-Infra
-category: LLM-Infra
+  - LLM-LoRA
+category: LLM 推理优化
 draft: false
 pin: 0
 toc: true

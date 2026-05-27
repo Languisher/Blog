@@ -1,0 +1,189 @@
+---
+interface CategoryListItem {
+  label: string
+  slug: string
+  href: string
+  count: number
+  depth: number
+  childSlugs: string[]
+  active?: boolean
+}
+
+interface Props {
+  items: CategoryListItem[]
+  allHref: string
+  allLabel?: string
+  currentKey?: string
+}
+
+const { items, allHref, allLabel = 'All', currentKey = '' } = Astro.props
+const itemBySlug = new Map(items.map(item => [item.slug, item]))
+const roots = items.filter(item => item.depth === 0)
+const maxCount = Math.max(1, ...items.map(item => item.count))
+
+function getIntensity(count: number) {
+  return 0.07 + (count / maxCount) * 0.13
+}
+---
+
+<div class="no-heti category-list" aria-label="Category list">
+  <a
+    href={allHref}
+    class:list={[
+      'category-button',
+      'category-button-all',
+      currentKey === '' ? 'is-active' : '',
+    ]}
+    style={`--category-intensity: ${getIntensity(maxCount)};`}
+  >
+    {allLabel}
+  </a>
+
+  <div class="category-groups">
+    {roots.map((root) => {
+      const children = root.childSlugs
+        .map(slug => itemBySlug.get(slug))
+        .filter((item): item is CategoryListItem => Boolean(item))
+
+      return (
+        <div class="category-row">
+          <div class="category-root">
+            <a
+              href={root.href}
+              class:list={[
+                'category-button',
+                'category-button-root',
+                root.active ? 'is-active' : '',
+              ]}
+              style={`--category-intensity: ${getIntensity(root.count)};`}
+            >
+              <span>{root.label}</span>
+              <span class="category-count">{root.count}</span>
+            </a>
+          </div>
+
+          <div class="category-children">
+            {children.length > 0
+              ? children.map(child => (
+                  <a
+                    href={child.href}
+                    class:list={[
+                      'category-button',
+                      child.active ? 'is-active' : '',
+                    ]}
+                    style={`--category-intensity: ${getIntensity(child.count)};`}
+                  >
+                    <span>{child.label}</span>
+                    <span class="category-count">{child.count}</span>
+                  </a>
+                ))
+              : (
+                  <span class="category-empty" aria-hidden="true">
+                    -
+                  </span>
+                )}
+          </div>
+        </div>
+      )
+    })}
+  </div>
+</div>
+
+<style>
+  .category-list {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .category-button-all {
+    align-self: flex-start;
+  }
+
+  .category-groups {
+    display: grid;
+    gap: 0.76rem;
+  }
+
+  .category-row {
+    display: grid;
+    grid-template-columns: minmax(8.5rem, 0.92fr) minmax(0, 1.7fr);
+    align-items: stretch;
+    column-gap: 1rem;
+  }
+
+  .category-root {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .category-children {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.52rem 0.58rem;
+    border-left: 1px solid oklch(var(--un-preset-theme-colors-secondary) / 0.26);
+    padding-left: 1rem;
+  }
+
+  .category-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 1.7rem;
+    border: 1px solid transparent;
+    border-radius: 0.55rem;
+    padding: 0.42rem 0.9rem;
+    background: oklch(var(--un-preset-theme-colors-secondary) / var(--category-intensity, 0.12));
+    color: oklch(var(--un-preset-theme-colors-secondary) / 0.86);
+    font-weight: 650;
+    line-height: 1;
+    transition:
+      border-color 0.16s ease-out,
+      color 0.16s ease-out,
+      background-color 0.16s ease-out;
+  }
+
+  .category-button-root {
+    max-width: 100%;
+  }
+
+  .category-button:hover {
+    background: oklch(var(--un-preset-theme-colors-secondary) / calc(var(--category-intensity, 0.12) + 0.04));
+    color: oklch(var(--un-preset-theme-colors-secondary) / 0.98);
+  }
+
+  .category-button.is-active {
+    border-color: oklch(var(--un-preset-theme-colors-note) / 0.68);
+    background: oklch(var(--un-preset-theme-colors-note) / 0.16);
+    color: oklch(var(--un-preset-theme-colors-primary));
+  }
+
+  .category-count {
+    color: currentColor;
+    font-size: 0.78em;
+    font-weight: 700;
+    opacity: 0.58;
+  }
+
+  .category-empty {
+    color: oklch(var(--un-preset-theme-colors-secondary) / 0.38);
+    line-height: 1.7rem;
+  }
+
+  @media (max-width: 640px) {
+    .category-row {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 0.48rem;
+    }
+
+    .category-children {
+      border-left: 0;
+      border-top: 1px solid oklch(var(--un-preset-theme-colors-secondary) / 0.2);
+      padding-left: 0;
+      padding-top: 0.58rem;
+    }
+  }
+</style>

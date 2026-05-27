@@ -27,6 +27,18 @@ export interface ThemeConfig {
       description: string
     }>>
   }
+  homePortfolio?: {
+    enabled: boolean
+    avatar: string
+    name: string
+    organization: string
+    description: string
+    translations?: Partial<Record<Language, {
+      name: string
+      organization: string
+      description: string
+    }>>
+  }
   homePostList?: {
     excerptLength?: {
       cjk: number

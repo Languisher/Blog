@@ -4,8 +4,8 @@ published: 2026-04-11T20:57:23.862Z
 description: 本文简单介绍了 LLM 推理采样的基本概念，并且介绍了不同采样方式和采样策略。
 updated: ""
 tags:
-  - LLM-Infra
-category: LLM-Infra
+  - LLM-Sampling
+category: LLM 基础
 draft: false
 pin: 0
 toc: true

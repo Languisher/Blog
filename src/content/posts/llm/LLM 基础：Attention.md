@@ -4,9 +4,8 @@ published: 2026-03-01T15:24:05.272Z
 description: 本文将会介绍 LLM 的核心部件 Attention.
 updated: 2026-05-06T07:07:35Z
 tags:
-  - LLM
-  - Attention
-category: LLM
+  - LLM-Attention
+category: LLM 基础
 draft: false
 pin: 0
 toc: true

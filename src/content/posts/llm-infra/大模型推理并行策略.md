@@ -6,7 +6,7 @@ updated: ""
 tags:
   - LLM-Infra
   - Parallelism
-category: LLM-Infra
+category: LLM 推理优化
 draft: false
 pin: 0
 toc: true

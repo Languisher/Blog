@@ -1,6 +1,5 @@
 ---
 import type { Language } from '@/i18n/config'
-import TaxonomyList from '@/components/TaxonomyList.astro'
 import { getLocalizedPath, getTagPath } from '@/i18n/path'
 
 interface Props {
@@ -26,10 +25,82 @@ const tagItems = tags.map((tag) => {
     active: currentTag === name,
   }
 })
+
+const maxCount = Math.max(1, ...tagItems.map(tag => tag.count))
+
+function getIntensity(count: number) {
+  return 0.07 + (count / maxCount) * 0.13
+}
 ---
 
-<TaxonomyList
-  items={tagItems}
-  allHref={allTagsPath}
-  currentKey={currentTag}
-/>
+<div class="no-heti tag-list" aria-label="Tag list">
+  <a
+    href={allTagsPath}
+    class:list={[
+      'tag-button',
+      currentTag === '' ? 'is-active' : '',
+    ]}
+    style={`--tag-intensity: ${getIntensity(maxCount)};`}
+  >
+    All
+  </a>
+
+  {tagItems.map(tag => (
+    <a
+      href={tag.href}
+      class:list={[
+        'tag-button',
+        tag.active ? 'is-active' : '',
+      ]}
+      style={`--tag-intensity: ${getIntensity(tag.count)};`}
+    >
+      <span>{tag.label}</span>
+      <span class="tag-count">{tag.count}</span>
+    </a>
+  ))}
+</div>
+
+<style>
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.62rem 0.68rem;
+  }
+
+  .tag-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 1.7rem;
+    border: 1px solid transparent;
+    border-radius: 0.55rem;
+    padding: 0.42rem 0.86rem;
+    background: oklch(var(--un-preset-theme-colors-secondary) / var(--tag-intensity, 0.12));
+    color: oklch(var(--un-preset-theme-colors-secondary) / 0.86);
+    font-weight: 650;
+    line-height: 1;
+    transition:
+      border-color 0.16s ease-out,
+      color 0.16s ease-out,
+      background-color 0.16s ease-out;
+  }
+
+  .tag-button:hover {
+    background: oklch(var(--un-preset-theme-colors-secondary) / calc(var(--tag-intensity, 0.12) + 0.04));
+    color: oklch(var(--un-preset-theme-colors-secondary) / 0.98);
+  }
+
+  .tag-button.is-active {
+    border-color: oklch(var(--un-preset-theme-colors-note) / 0.68);
+    background: oklch(var(--un-preset-theme-colors-note) / 0.16);
+    color: oklch(var(--un-preset-theme-colors-primary));
+  }
+
+  .tag-count {
+    color: currentColor;
+    font-size: 0.78em;
+    font-weight: 700;
+    opacity: 0.58;
+  }
+</style>

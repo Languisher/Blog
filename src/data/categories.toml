@@ -1,0 +1,76 @@
+# Category tree.
+# `aliases` are accepted values from post frontmatter `category` or legacy folder slugs.
+
+[[categories]]
+name = "LLM 基础"
+slug = "llm-basics"
+aliases = ["LLM 基础", "llm"]
+
+[[categories]]
+name = "LLM 推理优化"
+slug = "ai-infra"
+aliases = ["LLM 推理优化", "llm-infra", "parallelism"]
+
+
+
+[[categories.children]]
+name = "LLM 推理平台"
+slug = "llm-inference-platform"
+aliases = ["LLM 推理平台", "vLLM"]
+
+[[categories.children]]
+name = "通信"
+slug = "communication"
+aliases = ["通信", "communication"]
+
+[[categories.children]]
+name = "CUDA 编程"
+slug = "cuda"
+aliases = ["CUDA编程", "CUDA 编程", "cuda"]
+
+[[categories.children]]
+name = "LLM 模拟器"
+slug = "llm-simulator"
+aliases = ["LLM 模拟器"]
+
+
+[[categories]]
+name = "CS Basics"
+slug = "cs-basics"
+aliases = ["CS Basics", "cs-basics"]
+
+[[categories.children]]
+name = "编程语言"
+slug = "programming-language"
+aliases = ["编程语言"]
+
+[[categories]]
+name = "Algorithms"
+slug = "algorithms"
+aliases = ["Algorithms", "algos"]
+
+[[categories.children]]
+name = "数据结构和算法"
+slug = "data-structures-and-algorithms"
+aliases = ["数据结构和算法", "DSA"]
+
+[[categories.children]]
+name = "图论"
+slug = "graph-theory"
+aliases = ["图论"]
+
+[[categories]]
+name = "课程笔记"
+slug = "course-notes"
+aliases = ["课程笔记"]
+
+[[categories.children]]
+name = "强化学习"
+slug = "reinforcement-learning"
+aliases = ["强化学习", "rl"]
+
+
+[[categories]]
+name = "Misc"
+slug = "misc"
+aliases = ["Misc", "Misc.", "misc"]
