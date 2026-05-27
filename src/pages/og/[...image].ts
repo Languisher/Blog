@@ -26,7 +26,7 @@ export const { getStaticPaths, GET } = await OGImageRoute({
     title: page.title,
     description: page.description,
     logo: {
-      path: './public/icons/og-logo.png', // Required local path and PNG format
+      path: './public/icons/og-logo.jpeg', // Required local path and PNG format
       size: [250],
     },
     border: {

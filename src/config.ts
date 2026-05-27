@@ -46,7 +46,7 @@ export const themeConfig: ThemeConfig = {
     enabled: true,
     avatar: '/icons/og-logo.jpeg',
     name: '',
-    organization: '上海交通大学 @ IMPACT',
+    organization: '上海交通大学',
     description: '主要关注大模型推理优化、计算机系统以及并行计算。',
     translations: {
       en: {
