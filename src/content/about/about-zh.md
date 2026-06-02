@@ -17,13 +17,23 @@ lang: zh
   </div>
   <div class="education-timeline__item">
     <div class="education-timeline__year">Sep 2025 - Sep 2027 (Predicted)</div>
-    <div class="education-timeline__title">Candidate Master of Engineering</div>
+    <div class="education-timeline__title">Master of Engineering</div>
     <a class="education-timeline__school" href="https://www.ensta-paris.fr/">ENSTA, IP Paris<sup></sup></a>
   </div>
   <div class="education-timeline__item">
     <div class="education-timeline__year">Sep 2025 - Mar 2028 (Predicted)</div>
-    <div class="education-timeline__title">Candidate Master of Engineering</div>
+    <div class="education-timeline__title">Master of Engineering</div>
     <a class="education-timeline__school" href="https://www.sjtu.edu.cn/">上海交通大学<sup></sup></a>
+  </div>
+</div>
+
+## 工作经历
+
+<div class="education-timeline">
+  <div class="education-timeline__item">
+    <div class="education-timeline__year">June 2026 - Aug 2026</div>
+    <div class="education-timeline__title">Research Intern</div>
+    <a class="education-timeline__school" href="https://www.inria.fr">Inria</a>
   </div>
 </div>
 

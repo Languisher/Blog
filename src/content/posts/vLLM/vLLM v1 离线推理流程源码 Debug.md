@@ -133,7 +133,7 @@ abbrlink: vllm-system-offline-debug
 - `input_queue` 用于缓存从 ZMQ socket 接收到的请求，由后台线程 `process_input_sockets(...)` 持续接收、反序列化并写入队列，随后由 `run_busy_loop()` 主循环读取并处理。
 - `output_queue` 用于缓存 `EngineCore` 产生的推理输出，由主循环写入，再由后台线程 `process_output_sockets(...)` 负责序列化并通过 ZMQ socket 发回 `EngineCoreClient`。
 
-在 `EngineCoreProc` 的初始化中，触发 `EngineCore` 的初始化
+在 `EngineCoreProc` 的初始化中，**触发 `EngineCore` 的初始化**
 - 如何理解这两个元件？EngineCoreProc = EngineCore + ZMQ/Process Wrapper
 
 :::gallery

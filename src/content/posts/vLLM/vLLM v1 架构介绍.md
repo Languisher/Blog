@@ -34,7 +34,8 @@ LLM Engine 的主要组成部分包括：
 
 数据流可以表示为：
 
-![](Attachments/LLMEngine.png)
+[LLMEngine2](Attachments/LLMEngine2.png)
+
 ```
 User Input
    ↓

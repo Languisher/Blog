@@ -1,5 +1,5 @@
 ---
-title: 无 sudo 权限下安装和管理二进制软件：使用 conda
+title: 在无 sudo 权限下安装和管理二进制软件：使用 conda
 published: 2026-04-26T12:10:46.250Z
 description: ""
 updated: ""
