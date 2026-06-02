@@ -43,9 +43,9 @@ abbrlink: llm-infra
 
 - FlashAttention v1/v2/v3/v4
 	- [Online Softmax 推导](Online%20Softmax%20推导.md)
-	- [Flash Attention (FA1)](Flash%20Attention%20(FA1).md)
-	- [Flash Attention 2 (FA2)](Flash%20Attention%202%20(FA2).md)
-- [Flash Decoding](Flash%20Decoding.md)
+	- [Flash Attention (FA1)](attention/Flash%20Attention%20(FA1).md)
+	- [Flash Attention 2 (FA2)](attention/Flash%20Attention%202%20(FA2).md)
+- [Flash Decoding](attention/Flash%20Decoding.md)
 - Sparse / Sliding Window / Linear Attention
 
 ## KV Cache 管理

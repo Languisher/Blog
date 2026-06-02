@@ -25,7 +25,7 @@ abbrlink: flash-attention-v2
 ## 问题背景
 
 - [Online Softmax 推导](Online%20Softmax%20推导.md)
-- [Flash Attention (FA1)](Flash%20Attention%20(FA1).md)
+- [Flash Attention (FA1)](attention/Flash%20Attention%20(FA1).md)
 
 Attention 计算可以建模为：![](Attachments/StandardAttentionImplementation.png)
 

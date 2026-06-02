@@ -169,7 +169,7 @@ Standard Attention 可以建模为：
 
 ![](Attachments/FlashAttentionAlgo.png)
 
-具体可以参考我的文章：[Flash Attention (FA1)](Flash%20Attention%20(FA1).md).
+具体可以参考我的文章：[Flash Attention (FA1)](attention/Flash%20Attention%20(FA1).md).
 
 ## Load Balancer
 

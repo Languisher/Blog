@@ -29,8 +29,18 @@ slug = "cuda"
 aliases = ["CUDA编程", "CUDA 编程", "cuda"]
 
 [[categories.children]]
+name = "KV Cache 优化"
+slug = "kvcache-optimization"
+aliases = []
+
+[[categories.children]]
+name = "Prefill-Decode 分离"
+slug = "pd-disaggregation"
+aliases = []
+
+[[categories.children]]
 name = "LLM 模拟器"
-slug = "llm-simulator"
+slug = ""
 aliases = ["LLM 模拟器"]
 
 

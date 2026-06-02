@@ -20,7 +20,7 @@ Flash Decoding利用 online softmax 中间状态 $(m,l,O)$ 的可结合性，将
 
 ## Flash Attention 在 LLM 推理阶段遇到的问题
 
-在 [Flash Attention (FA1)](Flash%20Attention%20(FA1).md) 和 [Flash Attention 2 (FA2)](Flash%20Attention%202%20(FA2).md) 文章中我们推导了 Flash Attention 计算方式。具体而言，为了计算：
+在 [Flash Attention (FA1)](attention/Flash%20Attention%20(FA1).md) 和 [Flash Attention 2 (FA2)](attention/Flash%20Attention%202%20(FA2).md) 文章中我们推导了 Flash Attention 计算方式。具体而言，为了计算：
 $$
 O = \text{softmax}\left( \frac{QK^T}{\sqrt{ d }} \right).V, \quad \mathrm{softmax}(x)_i = \frac{e^{x_i}}{\sum_j e^{x_j}}
 $$
@@ -29,7 +29,7 @@ $$
 - 得到 $(m^{(i)}, l^{(i)})$ 和未归一化权重 $A^{(i)}$，更新全局状态 $(m,l)$
 - **基于 $(O^{(i-1)}, A^{(i)} V^{(i)})$ 和归一化因子 $l^{(i)}$ 得到 $O^{(i)}$**
 
-> 在这里我们使用 $A^{(i)}= e^{S^{(i)}}$，而我们在 [Flash Attention (FA1)](Flash%20Attention%20(FA1).md) 使用的 $\tilde{P}^{(i)} = e^{S^{(i)} - m^{(i)}}$ 是其数值稳定形式（通过减去最大值进行重标定），两者在数学上等价。
+> 在这里我们使用 $A^{(i)}= e^{S^{(i)}}$，而我们在 [Flash Attention (FA1)](attention/Flash%20Attention%20(FA1).md) 使用的 $\tilde{P}^{(i)} = e^{S^{(i)} - m^{(i)}}$ 是其数值稳定形式（通过减去最大值进行重标定），两者在数学上等价。
 
 ![](Attachments/FlashAttentionV1.png)
 

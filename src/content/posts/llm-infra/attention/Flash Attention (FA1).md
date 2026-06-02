@@ -158,7 +158,7 @@ $$
 ![](Attachments/OnlineSoftmaxInFlashAttention.png)
 
 下图是 Flash Attention v1 原文的求解算法：
-![](../llm-infra/Attachments/FlashAttentionAlgo1.png)
+![](../Attachments/FlashAttentionAlgo1.png)
 
 - 第 10 行介绍了每一行需要计算的局部状态，主要包括了 online softmax 的元素最大值 $\tilde{m}_{ij}$ 和归一化因子 $\tilde{l}_{ij}$，与此同时还需要记录每一个元素的分子部分 $\tilde{P}_{ij}$，用于与 $V_{j}$ 相乘。
 - 第 11 行介绍了每一个 tilde 对于局部状态的更新计算公式
