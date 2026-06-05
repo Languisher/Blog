@@ -6,7 +6,7 @@ updated: ""
 tags:
   - LLM-Infra
   - LLM-KVCache
-category: LLM 推理优化
+category: KV Cache 优化
 draft: false
 pin: 0
 toc: true

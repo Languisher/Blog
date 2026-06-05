@@ -6,7 +6,7 @@ updated: ""
 tags:
   - LLM-Infra
   - LLM-MoE
-category: LLM 推理优化
+category: LLM 推理并行优化
 draft: false
 pin: 0
 toc: true

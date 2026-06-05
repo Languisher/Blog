@@ -1,15 +1,12 @@
 # Category tree.
 # `aliases` are accepted values from post frontmatter `category` or legacy folder slugs.
 
-[[categories]]
-name = "LLM 基础"
-slug = "llm-basics"
-aliases = ["LLM 基础", "llm"]
 
 [[categories]]
 name = "LLM 推理优化"
 slug = "ai-infra"
 aliases = ["LLM 推理优化", "llm-infra", "parallelism"]
+
 
 
 
@@ -39,10 +36,35 @@ slug = "pd-disaggregation"
 aliases = []
 
 [[categories.children]]
+name = "并行优化"
+slug = "llm-parallelism"
+aliases = ["LLM 推理并行优化"]
+
+[[categories.children]]
 name = "LLM 模拟器"
-slug = ""
+slug = "llm-simulator"
 aliases = ["LLM 模拟器"]
 
+[[categories]]
+name = "LLM 推理系统安全"
+slug = "ai-infra-security"
+aliases = []
+
+[[categories]]
+name = "LLM 基础"
+slug = "llm-basics"
+aliases = ["LLM 基础", "llm"]
+
+[[categories]]
+name = "Algorithms"
+slug = "algorithms"
+aliases = ["Algorithms", "algos"]
+
+
+[[categories]]
+name = "计算机系统设计"
+slug = "cs"
+aliases = []
 
 [[categories]]
 name = "CS Basics"
@@ -54,10 +76,6 @@ name = "编程语言"
 slug = "programming-language"
 aliases = ["编程语言"]
 
-[[categories]]
-name = "Algorithms"
-slug = "algorithms"
-aliases = ["Algorithms", "algos"]
 
 [[categories.children]]
 name = "数据结构和算法"
