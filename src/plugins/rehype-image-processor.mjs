@@ -1,5 +1,13 @@
 import { visit } from 'unist-util-visit'
 
+function isPdfUrl(src) {
+  if (!src) {
+    return false
+  }
+
+  return String(src).split(/[?#]/)[0].toLowerCase().endsWith('.pdf')
+}
+
 function createFigure(imgNode, isInGallery = false) {
   const altText = imgNode.properties?.alt
   const shouldSkipCaption = !altText || altText.startsWith('_')
@@ -22,6 +30,54 @@ function createFigure(imgNode, isInGallery = false) {
     type: 'element',
     tagName: 'figure',
     properties: isInGallery ? { className: ['gallery-item'] } : {},
+    children,
+  }
+}
+
+function createPdfPreview(imgNode, isInGallery = false) {
+  const src = imgNode.properties?.src
+  const altText = imgNode.properties?.alt
+  const shouldSkipCaption = !altText || altText.startsWith('_')
+  const fallbackText = altText && !altText.startsWith('_') ? altText : 'Open PDF'
+
+  const children = [
+    {
+      type: 'element',
+      tagName: 'object',
+      properties: {
+        className: ['pdf-preview__embed'],
+        data: src,
+        type: 'application/pdf',
+      },
+      children: [
+        {
+          type: 'element',
+          tagName: 'a',
+          properties: { href: src },
+          children: [{ type: 'text', value: fallbackText }],
+        },
+      ],
+    },
+  ]
+
+  if (!shouldSkipCaption) {
+    children.push({
+      type: 'element',
+      tagName: 'figcaption',
+      properties: {},
+      children: [{ type: 'text', value: altText }],
+    })
+  }
+
+  return {
+    type: 'element',
+    tagName: 'figure',
+    properties: {
+      className: [
+        'pdf-preview',
+        ...(isInGallery ? ['gallery-item'] : []),
+      ],
+    },
     children,
   }
 }
@@ -53,14 +109,19 @@ export function rehypeImageProcessor() {
 
       // Gallery container: convert images to figures
       if (isInGallery) {
-        const figures = imgNodes.map(imgNode => createFigure(imgNode, true))
+        const figures = imgNodes.map(imgNode =>
+          isPdfUrl(imgNode.properties?.src)
+            ? createPdfPreview(imgNode, true)
+            : createFigure(imgNode, true))
         parent.children.splice(index, 1, ...figures)
         return
       }
 
       // Single image: convert to figure in non-gallery containers
       if (imgNodes.length === 1) {
-        const figure = createFigure(imgNodes[0], false)
+        const figure = isPdfUrl(imgNodes[0].properties?.src)
+          ? createPdfPreview(imgNodes[0], false)
+          : createFigure(imgNodes[0], false)
         if (figure !== imgNodes[0]) {
           // Only replace if conversion happened
           node.tagName = 'figure'
@@ -71,7 +132,10 @@ export function rehypeImageProcessor() {
       }
 
       // Multiple images: unwrap in non-gallery containers
-      parent.children.splice(index, 1, ...imgNodes)
+      parent.children.splice(index, 1, ...imgNodes.map(imgNode =>
+        isPdfUrl(imgNode.properties?.src)
+          ? createPdfPreview(imgNode, false)
+          : imgNode))
     })
   }
 }

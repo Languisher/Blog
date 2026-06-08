@@ -35,5 +35,20 @@ export function remarkPostLinks({ postsDir, base = '', defaultLocale }) {
         node.url = assetUrl
       }
     })
+
+    visit(tree, 'image', (node) => {
+      if (typeof node.url !== 'string') {
+        return
+      }
+
+      const assetUrl = resolvePostAssetUrl(node.url, sourceFilePath, registry, {
+        base,
+        defaultLocale,
+      })
+
+      if (assetUrl) {
+        node.url = assetUrl
+      }
+    })
   }
 }

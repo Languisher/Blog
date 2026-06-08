@@ -64,6 +64,10 @@ function buildPostAssetPath(slug, assetPath, { base = '' }) {
   return base ? `${base}${postAssetPath}` : postAssetPath
 }
 
+function buildPostRelativeAssetPath(slug, lang, assetPath, options) {
+  return `${buildPostPath(slug, lang, options)}${normalizeRoutePath(assetPath)}`
+}
+
 export function createPostReferenceRegistry(postsDir) {
   const registry = new Map()
   const postFiles = fg.sync('**/*.{md,mdx}', {
@@ -133,12 +137,9 @@ function getMarkdownLinkUrls(markdown) {
   const urls = new Set()
   const markdownLinkPattern = /(!?)\[[^\]\n]*\]\(([^)\n]+)\)/g
   const htmlLinkPattern = /\bhref=["']([^"']+)["']/g
+  const htmlMediaPattern = /\bsrc=["']([^"']+)["']/g
 
   for (const match of markdown.matchAll(markdownLinkPattern)) {
-    if (match[1] === '!') {
-      continue
-    }
-
     const rawUrl = match[2]?.trim()
     if (rawUrl) {
       urls.add(rawUrl.startsWith('<') && rawUrl.endsWith('>') ? rawUrl.slice(1, -1) : rawUrl)
@@ -146,6 +147,13 @@ function getMarkdownLinkUrls(markdown) {
   }
 
   for (const match of markdown.matchAll(htmlLinkPattern)) {
+    const rawUrl = match[1]?.trim()
+    if (rawUrl) {
+      urls.add(rawUrl)
+    }
+  }
+
+  for (const match of markdown.matchAll(htmlMediaPattern)) {
     const rawUrl = match[1]?.trim()
     if (rawUrl) {
       urls.add(rawUrl)
@@ -178,10 +186,12 @@ function resolvePostAsset(url, sourceFilePath, registry, options) {
   }
 
   const postAssetPath = buildPostAssetPath(source.slug, relativeAssetPath, options)
+  const postRelativeAssetPath = buildPostRelativeAssetPath(source.slug, source.lang, relativeAssetPath, options)
 
   return {
     filePath: resolvedAssetPath,
     routePath: encodeURI(postAssetPath),
+    relativeRoutePath: encodeURI(postRelativeAssetPath),
     suffix,
   }
 }
@@ -229,6 +239,7 @@ export function collectPostAssets(postsDir, options = {}) {
       const asset = resolvePostAsset(url, source.filePath, registry, options)
       if (asset) {
         assets.set(asset.routePath, asset.filePath)
+        assets.set(asset.relativeRoutePath, asset.filePath)
       }
     }
   }

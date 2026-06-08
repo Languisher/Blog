@@ -26,11 +26,12 @@ interface Props {
 }
 
 const { postTitle, postDescription, postSlug } = Astro.props
-const { isPost } = getPageInfo(Astro.url.pathname)
+const { isPost, getLocalizedPath } = getPageInfo(Astro.url.pathname)
 const fontStyle = themeConfig.global.fontStyle === 'serif' ? 'font-serif' : 'font-sans'
 const MarginBottom = isPost && themeConfig.comment.enabled
   ? 'mb-10' // Post page with comment
   : 'mb-12' // Other pages without comment
+const searchPath = getLocalizedPath('/search/')
 ---
 
 <html
@@ -60,5 +61,45 @@ const MarginBottom = isPost && themeConfig.comment.enabled
     <GithubCard />
     <MediaEmbed />
     <ImageZoom />
+    <script is:inline define:vars={{ searchPath }}>
+      (() => {
+        const isEditableTarget = (target) => {
+          if (!(target instanceof HTMLElement)) {
+            return false
+          }
+
+          const tagName = target.tagName.toLowerCase()
+          return target.isContentEditable
+            || tagName === 'input'
+            || tagName === 'textarea'
+            || tagName === 'select'
+        }
+
+        document.addEventListener('keydown', (event) => {
+          if (
+            event.key !== '/'
+            || event.defaultPrevented
+            || event.metaKey
+            || event.ctrlKey
+            || event.altKey
+            || event.shiftKey
+            || isEditableTarget(event.target)
+          ) {
+            return
+          }
+
+          event.preventDefault()
+          const url = new URL(searchPath, window.location.origin)
+          url.searchParams.set('focus', '1')
+
+          if (window.location.pathname === url.pathname) {
+            document.getElementById('site-search-input')?.focus()
+            return
+          }
+
+          window.location.href = `${url.pathname}${url.search}`
+        })
+      })()
+    </script>
   </body>
 </html>

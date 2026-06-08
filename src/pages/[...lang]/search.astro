@@ -278,6 +278,10 @@ const tagsLabel = currentLang === 'zh' || currentLang === 'zh-tw' ? '标签' : '
       input.value = params.get('q') ?? ''
       render(input.value)
 
+      if (params.get('focus') === '1' || !input.value) {
+        input.focus()
+      }
+
       input.addEventListener('input', () => {
         const url = new URL(window.location.href)
         if (input.value.trim()) {

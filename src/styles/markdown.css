@@ -88,6 +88,16 @@ html.dark .heti {
 .heti :where(figcaption) {
   --at-apply: 'mt-2.5 text-center text-sm c-secondary/80';
 }
+.heti :where(.pdf-preview) {
+  --at-apply: 'my-6 w-full';
+}
+.heti :where(.pdf-preview__embed) {
+  --at-apply: 'block w-full uno-round-border bg-secondary/5';
+  min-height: min(78vh, 52rem);
+}
+.heti :where(.pdf-preview__embed a) {
+  --at-apply: 'block px-4 py-3 text-center';
+}
 .heti :is(h1, h2, h3, h4, h5, h6, img, figure) + :is(img, figure) {
   --at-apply: 'mt-4';
 }
